@@ -402,7 +402,7 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele) {
-		return parseBeanDefinitionElement(ele, null);
+		return this.parseBeanDefinitionElement(ele, null);
 	}
 
 	/**
@@ -416,12 +416,16 @@ public class BeanDefinitionParserDelegate {
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
 		List<String> aliases = new ArrayList<>();
+		/**
+		 * 将name属性的定义按照[逗号、分号、空格]切分 形成一个别名数组
+		 */
 		if (StringUtils.hasLength(nameAttr)) {
 			String[] nameArr = StringUtils.tokenizeToStringArray(nameAttr, MULTI_VALUE_ATTRIBUTE_DELIMITERS);
 			aliases.addAll(Arrays.asList(nameArr));
 		}
 
 		String beanName = id;
+		// 如果没有指定id 则使用别名列表的第一个名字作为beanName
 		if (!StringUtils.hasText(beanName) && !aliases.isEmpty()) {
 			beanName = aliases.remove(0);
 			if (logger.isTraceEnabled()) {
@@ -434,8 +438,14 @@ public class BeanDefinitionParserDelegate {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 
-		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
+		/**
+		 * 根据<bean ...>...</bean>中的配置创建BeanDefinition 把配置中的信息都设置到实例中
+		 * 这边执行完之后 一个BeanDefinition实例就创建出来了
+		 */
+		AbstractBeanDefinition beanDefinition = this.parseBeanDefinitionElement(ele, beanName, containingBean);
+		// <bean />标签完成
 		if (beanDefinition != null) {
+			// 如果没有设置id和name 那么此时的beanName就是空
 			if (!StringUtils.hasText(beanName)) {
 				try {
 					if (containingBean != null) {
@@ -451,6 +461,7 @@ public class BeanDefinitionParserDelegate {
 						if (beanClassName != null &&
 								beanName.startsWith(beanClassName) && beanName.length() > beanClassName.length() &&
 								!this.readerContext.getRegistry().isBeanNameInUse(beanClassName)) {
+							// 把beanClassName设置为bean的别名
 							aliases.add(beanClassName);
 						}
 					}
@@ -465,6 +476,7 @@ public class BeanDefinitionParserDelegate {
 				}
 			}
 			String[] aliasesArray = StringUtils.toStringArray(aliases);
+			// 返回BeanDefinitionHolder
 			return new BeanDefinitionHolder(beanDefinition, beanName, aliasesArray);
 		}
 
@@ -495,6 +507,8 @@ public class BeanDefinitionParserDelegate {
 	/**
 	 * Parse the bean definition itself, without regard to name or aliases. May return
 	 * {@code null} if problems occurred during the parsing of the bean definition.
+	 *
+	 * 根据配置创建BeanDefinition实例
 	 */
 	@Nullable
 	public AbstractBeanDefinition parseBeanDefinitionElement(
@@ -512,18 +526,25 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		try {
+			// 创建BeanDefinition实例 然后设置实例属性
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
 
-			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
+			this.parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
-			parseMetaElements(ele, bd);
-			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
-			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
+			// 解析<meta />
+			this.parseMetaElements(ele, bd);
+			// 解析<lookup-method />
+			this.parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			// 解析<replace-method />
+			this.parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
 
-			parseConstructorArgElements(ele, bd);
-			parsePropertyElements(ele, bd);
-			parseQualifierElements(ele, bd);
+			// 解析<constructor-arg />
+			this.parseConstructorArgElements(ele, bd);
+			// 解析<property />
+			this.parsePropertyElements(ele, bd);
+			// 解析<qualifier />
+			this.parseQualifierElements(ele, bd);
 
 			bd.setResource(this.readerContext.getResource());
 			bd.setSource(extractSource(ele));
@@ -1530,7 +1551,7 @@ public class BeanDefinitionParserDelegate {
 	 * Determine whether the given node indicates the default namespace.
 	 */
 	public boolean isDefaultNamespace(Node node) {
-		return isDefaultNamespace(getNamespaceURI(node));
+		return this.isDefaultNamespace(getNamespaceURI(node));
 	}
 
 	private boolean isDefaultValue(String value) {

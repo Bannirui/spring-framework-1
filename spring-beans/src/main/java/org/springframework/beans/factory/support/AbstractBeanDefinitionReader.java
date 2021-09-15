@@ -185,14 +185,14 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		Assert.notNull(resources, "Resource array must not be null");
 		int count = 0;
 		for (Resource resource : resources) {
-			count += loadBeanDefinitions(resource);
+			count += this.loadBeanDefinitions(resource);
 		}
 		return count;
 	}
 
 	@Override
 	public int loadBeanDefinitions(String location) throws BeanDefinitionStoreException {
-		return loadBeanDefinitions(location, null);
+		return this.loadBeanDefinitions(location, null);
 	}
 
 	/**
@@ -211,7 +211,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
-		ResourceLoader resourceLoader = getResourceLoader();
+		ResourceLoader resourceLoader = this.getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
 					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
@@ -220,8 +220,9 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				// 将配置文件转换为Resource对象
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
-				int count = loadBeanDefinitions(resources);
+				int count = this.loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
 				}
@@ -253,9 +254,11 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	public int loadBeanDefinitions(String... locations) throws BeanDefinitionStoreException {
 		Assert.notNull(locations, "Location array must not be null");
 		int count = 0;
+		// 处理所有的配置文件
 		for (String location : locations) {
-			count += loadBeanDefinitions(location);
+			count += this.loadBeanDefinitions(location);
 		}
+		// 返回加载的所有BeanDefinition的数量
 		return count;
 	}
 

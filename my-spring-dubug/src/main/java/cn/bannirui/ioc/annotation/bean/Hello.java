@@ -1,4 +1,4 @@
-package cn.bannirui.ioc.bean;
+package cn.bannirui.ioc.annotation.bean;
 
 import org.springframework.stereotype.Repository;
 

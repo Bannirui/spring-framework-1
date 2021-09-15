@@ -1,7 +1,7 @@
-package cn.bannirui.ioc;
+package cn.bannirui.ioc.annotation;
 
-import cn.bannirui.ioc.bean.Hello;
-import cn.bannirui.ioc.config.AppConfig;
+import cn.bannirui.ioc.annotation.bean.Hello;
+import cn.bannirui.ioc.annotation.config.AppConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -10,7 +10,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * @date 2021/9/13
  * @description
  */
-public class IOCTest {
+public class IOCAnnotationTest {
 
 	public static void main(String[] args) {
 		ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);

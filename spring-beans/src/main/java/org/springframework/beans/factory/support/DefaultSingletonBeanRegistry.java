@@ -165,7 +165,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Override
 	@Nullable
 	public Object getSingleton(String beanName) {
-		return getSingleton(beanName, true);
+		return this.getSingleton(beanName, true);
 	}
 
 	/**

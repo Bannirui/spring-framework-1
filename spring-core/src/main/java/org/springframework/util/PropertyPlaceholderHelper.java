@@ -123,9 +123,16 @@ public class PropertyPlaceholderHelper {
 	 */
 	public String replacePlaceholders(String value, PlaceholderResolver placeholderResolver) {
 		Assert.notNull(value, "'value' must not be null");
-		return parseStringValue(value, placeholderResolver, null);
+		return this.parseStringValue(value, placeholderResolver, null);
 	}
 
+	/**
+	 * AbstractRefreshableConfigApplicationContext::ConfigurableEnvironment.resolveRequiredPlaceholders()方法调用链的终点
+	 * @param value
+	 * @param placeholderResolver
+	 * @param visitedPlaceholders
+	 * @return
+	 */
 	protected String parseStringValue(
 			String value, PlaceholderResolver placeholderResolver, @Nullable Set<String> visitedPlaceholders) {
 

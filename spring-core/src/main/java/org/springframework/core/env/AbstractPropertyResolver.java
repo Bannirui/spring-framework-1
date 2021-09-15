@@ -140,6 +140,13 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		Collections.addAll(this.requiredProperties, requiredProperties);
 	}
 
+	/**
+	 * @author dingrui
+	 * @date 2021/9/14
+	 * @return
+	 * @description 检查环境变量
+	 * 存在环境变量的value为空的时候就抛异常
+	 */
 	@Override
 	public void validateRequiredProperties() {
 		MissingRequiredPropertiesException ex = new MissingRequiredPropertiesException();
@@ -205,9 +212,9 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	@Override
 	public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
 		if (this.strictHelper == null) {
-			this.strictHelper = createPlaceholderHelper(false);
+			this.strictHelper = this.createPlaceholderHelper(false);
 		}
-		return doResolvePlaceholders(text, this.strictHelper);
+		return this.doResolvePlaceholders(text, this.strictHelper);
 	}
 
 	/**

@@ -64,9 +64,15 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractRefreshableApplicationContext extends AbstractApplicationContext {
 
+	/**
+	 * 是否允许Bean覆盖
+	 */
 	@Nullable
 	private Boolean allowBeanDefinitionOverriding;
 
+	/**
+	 * 是否允许循环饮用
+	 */
 	@Nullable
 	private Boolean allowCircularReferences;
 
@@ -119,15 +125,31 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		/**
+		 * 判断当前ApplicationContext是否存在BeanFactory
+		 *   - 如果当前ApplicationContext存在BeanFactory就销毁所有的Bean 关闭BeanFactory
+		 *   - 一个应用可以存在多个BeanFactory 这个的判断条件是当前ApplicationContext是否存在BeanFactory
+		 */
 		if (hasBeanFactory()) {
-			destroyBeans();
-			closeBeanFactory();
+			// 销毁Bean
+			super.destroyBeans();
+			// 关闭BeanFactory
+			this.closeBeanFactory();
 		}
 		try {
-			DefaultListableBeanFactory beanFactory = createBeanFactory();
-			beanFactory.setSerializationId(getId());
-			customizeBeanFactory(beanFactory);
-			loadBeanDefinitions(beanFactory);
+			// 初始化DefaultListableBeanFactory
+			DefaultListableBeanFactory beanFactory = this.createBeanFactory();
+			beanFactory.setSerializationId(super.getId());
+			/**
+			 * 设置BeanFactory的两个配置属性
+			 *   - 是否允许Bean覆盖
+			 *   - 是否允许循环饮用
+			 */
+			this.customizeBeanFactory(beanFactory);
+			/**
+			 * 加载Bean到BeanFactory中
+			 */
+			this.loadBeanDefinitions(beanFactory);
 			this.beanFactory = beanFactory;
 		}
 		catch (IOException ex) {
@@ -194,7 +216,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowRawInjectionDespiteWrapping
 	 */
 	protected DefaultListableBeanFactory createBeanFactory() {
-		return new DefaultListableBeanFactory(getInternalParentBeanFactory());
+		return new DefaultListableBeanFactory(super.getInternalParentBeanFactory());
 	}
 
 	/**

@@ -72,13 +72,17 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	/**
 	 * Set the config locations for this application context.
 	 * <p>If not set, the implementation may use a default as appropriate.
+	 *
+	 * 作用有2个
+	 *   - 创建环境对象ConfigurableEnvironment(实例为StandardEnvironment)
+	 *   - 处理ClassPathXmlApplicationContext传入的字符串中的占位符
 	 */
 	public void setConfigLocations(@Nullable String... locations) {
 		if (locations != null) {
 			Assert.noNullElements(locations, "Config locations must not be null");
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {
-				this.configLocations[i] = resolvePath(locations[i]).trim();
+				this.configLocations[i] = this.resolvePath(locations[i]).trim();
 			}
 		}
 		else {
@@ -98,7 +102,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 */
 	@Nullable
 	protected String[] getConfigLocations() {
-		return (this.configLocations != null ? this.configLocations : getDefaultConfigLocations());
+		return (this.configLocations != null ? this.configLocations : this.getDefaultConfigLocations());
 	}
 
 	/**
@@ -122,7 +126,12 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * @see org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)
 	 */
 	protected String resolvePath(String path) {
-		return getEnvironment().resolveRequiredPlaceholders(path);
+		/**
+		 * - 创建环境变量
+		 * - 处理所有使用${}方式的占位符
+		 *   - 调用链的终点在PropertyPlaceholderHelper::parseStringValue()
+		 */
+		return super.getEnvironment().resolveRequiredPlaceholders(path);
 	}
 
 

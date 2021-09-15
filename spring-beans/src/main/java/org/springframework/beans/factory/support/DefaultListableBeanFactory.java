@@ -915,18 +915,27 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
+		// 保存了所有的beanNames
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
 		// Trigger initialization of all non-lazy singleton beans...
 		for (String beanName : beanNames) {
-			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+			/**
+			 * 合并父Bean中的配置
+			 *   - <bean id="***" class="***" parent="***" />中的parent属性
+			 */
+			RootBeanDefinition bd = super.getMergedLocalBeanDefinition(beanName);
+			// 不是抽象类 是单例 不是懒加载
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
-				if (isFactoryBean(beanName)) {
-					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
+				// 不管是FactoryBean还是普通的Bean 最终都会调用到AbstractBeanFactory::getBean()方法
+				if (super.isFactoryBean(beanName)) {
+					// 处理FactoryBean 在beanName前加上[&]前缀符号
+					Object bean = super.getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						FactoryBean<?> factory = (FactoryBean<?>) bean;
 						boolean isEagerInit;
 						if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
+							// 判断当前FactoryBean是SmartFactoryBean的实现
 							isEagerInit = AccessController.doPrivileged(
 									(PrivilegedAction<Boolean>) ((SmartFactoryBean<?>) factory)::isEagerInit,
 									getAccessControlContext());
@@ -936,20 +945,22 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
 						if (isEagerInit) {
-							getBean(beanName);
+							super.getBean(beanName);
 						}
 					}
 				}
 				else {
-					getBean(beanName);
+					// 不是FactoryBean
+					super.getBean(beanName);
 				}
 			}
 		}
 
 		// Trigger post-initialization callback for all applicable beans...
 		for (String beanName : beanNames) {
-			Object singletonInstance = getSingleton(beanName);
+			Object singletonInstance = super.getSingleton(beanName);
 			if (singletonInstance instanceof SmartInitializingSingleton) {
+				// 如果Bean实现了SmartInitializingSingleton接口 在这里进行回调
 				StartupStep smartInitialize = this.getApplicationStartup().start("spring.beans.smart-initialize")
 						.tag("beanName", beanName);
 				SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton) singletonInstance;
@@ -989,12 +1000,19 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		/**
+		 * 所有的Bean注册后都会放入到beanDefinitionMap中
+		 * 查看是否已经注册过这个bean
+		 */
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
+		// 处理重复名称的Bean定义
 		if (existingDefinition != null) {
 			if (!isAllowBeanDefinitionOverriding()) {
+				// 如果不允许覆盖则抛出异常
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
 			}
 			else if (existingDefinition.getRole() < beanDefinition.getRole()) {
+				// 用框架定义的Bean覆盖用户自定义的Bean
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (logger.isInfoEnabled()) {
 					logger.info("Overriding user-defined bean definition for bean '" + beanName +
@@ -1003,6 +1021,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			}
 			else if (!beanDefinition.equals(existingDefinition)) {
+				// 用新的Bean覆盖旧的Bean
 				if (logger.isDebugEnabled()) {
 					logger.debug("Overriding bean definition for bean '" + beanName +
 							"' with a different definition: replacing [" + existingDefinition +
@@ -1016,10 +1035,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"] with [" + beanDefinition + "]");
 				}
 			}
+			// 新的Bean覆盖旧的Bean
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {
-			if (hasBeanCreationStarted()) {
+			/**
+			 * 判断是否已经有其他的Bean开始初始化了
+			 *   - [注册Bean]这个动作结束之后Bean依然还没有初始化
+			 *   - 在Spring容器启动的最后会预初始化所有的singleton beans
+			 */
+			if (super.hasBeanCreationStarted()) {
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				synchronized (this.beanDefinitionMap) {
 					this.beanDefinitionMap.put(beanName, beanDefinition);
@@ -1032,18 +1057,21 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			else {
 				// Still in startup registration phase
+				// 将BeanDefinition放到这个map中 该map中存储了所有的BeanDefinition
 				this.beanDefinitionMap.put(beanName, beanDefinition);
+				// List列表按照Bean配置的顺序保存每一个注册Bean的名字
 				this.beanDefinitionNames.add(beanName);
-				removeManualSingletonName(beanName);
+				// set中存储的代表手动注册的singleton bean
+				this.removeManualSingletonName(beanName);
 			}
 			this.frozenBeanDefinitionNames = null;
 		}
 
 		if (existingDefinition != null || containsSingleton(beanName)) {
-			resetBeanDefinition(beanName);
+			this.resetBeanDefinition(beanName);
 		}
 		else if (isConfigurationFrozen()) {
-			clearByTypeCache();
+			this.clearByTypeCache();
 		}
 	}
 
@@ -1155,7 +1183,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	private void removeManualSingletonName(String beanName) {
-		updateManualSingletonNames(set -> set.remove(beanName), set -> set.contains(beanName));
+		this.updateManualSingletonNames(set -> set.remove(beanName), set -> set.contains(beanName));
 	}
 
 	/**
