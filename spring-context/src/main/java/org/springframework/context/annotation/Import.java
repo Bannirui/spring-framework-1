@@ -49,6 +49,11 @@ import java.lang.annotation.Target;
  * @see ImportSelector
  * @see ImportBeanDefinitionRegistrar
  * @see ImportResource
+ *
+ * Import只能放到类上面 不能放到方法上
+ * Import使用场景
+ *   - 可以配合Configuration、ImportSelector、ImportBeanDefinitionRegistrar使用
+ *   - 也可以当成普通的Bean使用
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

@@ -93,8 +93,8 @@ public interface ImportBeanDefinitionRegistrar {
 	 * registered here, due to lifecycle constraints related to {@code @Configuration}
 	 * class processing.
 	 * <p>The default implementation is empty.
-	 * @param importingClassMetadata annotation metadata of the importing class
-	 * @param registry current bean definition registry
+	 * @param importingClassMetadata annotation metadata of the importing class 这个参数可以拿到类的元数据信息
+	 * @param registry current bean definition registry 这个参数可以操作IOC容器
 	 */
 	default void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 	}

@@ -966,7 +966,7 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 		 *   - 获取更新条数updateCount
 		 *   - 前置方法execute
 		 */
-		return this.updateCount(this.execute(psc, ps -> {
+		return updateCount(this.execute(psc, ps -> {
 			try {
 				if (pss != null) {
 					// 设置所需的全部参数
