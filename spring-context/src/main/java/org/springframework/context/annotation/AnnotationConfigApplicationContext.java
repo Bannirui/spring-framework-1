@@ -66,8 +66,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// 注解Bean读取器
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
+		// 注解Bean扫描器
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -88,6 +90,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		/**
+		 * 子类的构造方法执行之前隐士触发父类GenericApplicationContext的无参构造方法
+		 *   - 创建DefaultListableBeanFactory实例
+		 */
 		this();
 		register(componentClasses);
 		refresh();
@@ -101,7 +107,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
 		this();
-		scan(basePackages);
+		this.scan(basePackages);
 		refresh();
 	}
 

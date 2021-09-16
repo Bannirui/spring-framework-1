@@ -31,6 +31,8 @@ public interface MetadataReader {
 
 	/**
 	 * Return the resource reference for the class file.
+	 *
+	 * 配置类的资源对象
 	 */
 	Resource getResource();
 

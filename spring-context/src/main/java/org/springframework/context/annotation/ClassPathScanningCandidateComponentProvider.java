@@ -308,11 +308,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
-		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
-			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
+		if (this.componentsIndex != null && this.indexSupportsIncludeFilters()) {
+			// 使用Filter指定忽略包不扫描
+			return this.addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
-			return scanCandidateComponents(basePackage);
+			// 扫描包
+			return this.scanCandidateComponents(basePackage);
 		}
 	}
 
@@ -411,13 +413,14 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		}
 		return candidates;
 	}
-
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			// 组装扫描路径 组装完成之后的格式: classpath*:cn/bannirui/ioc/annotation/config/**/*.class
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
-					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
-			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
+					this.resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			// 根据路径获取资源对象
+			Resource[] resources = this.getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
 			for (Resource resource : resources) {
@@ -426,7 +429,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				}
 				if (resource.isReadable()) {
 					try {
-						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+						// 根据资源对象通过反射获取资源对象的MetadataReader
+						MetadataReader metadataReader = this.getMetadataReaderFactory().getMetadataReader(resource);
 						if (isCandidateComponent(metadataReader)) {
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setSource(resource);

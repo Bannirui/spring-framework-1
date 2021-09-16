@@ -249,15 +249,18 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @return number of beans registered
 	 */
 	public int scan(String... basePackages) {
+		// 获取当前注册Bean的数量
 		int beanCountAtScanStart = this.registry.getBeanDefinitionCount();
 
-		doScan(basePackages);
+		this.doScan(basePackages);
 
 		// Register annotation config processors, if necessary.
 		if (this.includeAnnotationConfig) {
+			// 注册配置处理器
 			AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 		}
 
+		// 返回此次注册的数量
 		return (this.registry.getBeanDefinitionCount() - beanCountAtScanStart);
 	}
 
@@ -272,24 +275,44 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
+		// 遍历要扫描的包路径
 		for (String basePackage : basePackages) {
-			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+			// 获取所有符合条件的BeanDefinition
+			Set<BeanDefinition> candidates = super.findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
+				// 绑定BeanDefinition与Scope
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
+				// 查看配置类是否指定了bean名称 如果没有指定bean名称就使用类名首字母小写
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+				/**
+				 * 以下2个if处理的内容
+				 *   - lazy
+				 *   - Autowired
+				 *   - DependencyOn
+				 *   - initMethod
+				 *   - enforceInitMethod
+				 *   - destroyMethod
+				 *   - enforceDestroyMethod
+				 *   - Primary
+				 *   - Role
+				 *   - Description
+				 */
 				if (candidate instanceof AbstractBeanDefinition) {
-					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
+					this.postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition) {
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
-				if (checkCandidate(beanName, candidate)) {
+				// 检查Bean是否存在
+				if (this.checkCandidate(beanName, candidate)) {
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
+					// 检查scope是否创建 如果没有创建就进行创建
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
-					registerBeanDefinition(definitionHolder, this.registry);
+					// 核心方法
+					this.registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}
 		}
