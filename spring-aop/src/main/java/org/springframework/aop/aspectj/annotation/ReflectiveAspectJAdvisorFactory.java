@@ -120,11 +120,19 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 	}
 
 
+	/**
+	 * @author dingrui
+	 * @date 2021/9/16
+	 * @param aspectInstanceFactory
+	 * @return
+	 * @description 从@Aspect标识的类上获取@Before、@PointCut等注解信息及其标识的方法信息 生成增强
+	 */
 	@Override
 	public List<Advisor> getAdvisors(MetadataAwareAspectInstanceFactory aspectInstanceFactory) {
 		Class<?> aspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
 		String aspectName = aspectInstanceFactory.getAspectMetadata().getAspectName();
-		validate(aspectClass);
+		// 校验类的合法性
+		super.validate(aspectClass);
 
 		// We need to wrap the MetadataAwareAspectInstanceFactory with a decorator
 		// so that it will only instantiate once.
@@ -132,7 +140,8 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
 
 		List<Advisor> advisors = new ArrayList<>();
-		for (Method method : getAdvisorMethods(aspectClass)) {
+		// 获取这个类的所有的增强方法
+		for (Method method : this.getAdvisorMethods(aspectClass)) {
 			// Prior to Spring Framework 5.2.7, advisors.size() was supplied as the declarationOrderInAspect
 			// to getAdvisor(...) to represent the "current position" in the declared methods list.
 			// However, since Java 7 the "current position" is not valid since the JDK no longer
@@ -141,7 +150,8 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			// discovered via reflection in order to support reliable advice ordering across JVM launches.
 			// Specifically, a value of 0 aligns with the default value used in
 			// AspectJPrecedenceComparator.getAspectDeclarationOrder(Advisor).
-			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
+			// 生成增强实例
+			Advisor advisor = this.getAdvisor(method, lazySingletonAspectInstanceFactory, 0, aspectName);
 			if (advisor != null) {
 				advisors.add(advisor);
 			}
@@ -168,6 +178,12 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		List<Method> methods = new ArrayList<>();
 		ReflectionUtils.doWithMethods(aspectClass, methods::add, adviceMethodFilter);
 		if (methods.size() > 1) {
+			/**
+			 * 对得到的所有方法进行排序
+			 *   - 如果方法标识了切面注解 则按照@Around、@Before、@After、@AfterReturning、@AfterThrowing的顺序排序
+			 *   - 如果没有标识这些注解 则按照方法名称的字符串排序
+			 *   - 有注解的方法排在没有注解的方法之前
+			 */
 			methods.sort(adviceMethodComparator);
 		}
 		return methods;
@@ -202,26 +218,36 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 	public Advisor getAdvisor(Method candidateAdviceMethod, MetadataAwareAspectInstanceFactory aspectInstanceFactory,
 			int declarationOrderInAspect, String aspectName) {
 
+		// 再次校验类的合法性
 		validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
 
-		AspectJExpressionPointcut expressionPointcut = getPointcut(
+		// 切点表达式信息: execution(public * cn.bannirui.aop.annotation.service.HelloService.sayHello(..))
+		AspectJExpressionPointcut expressionPointcut = this.getPointcut(
 				candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
 		if (expressionPointcut == null) {
 			return null;
 		}
 
+		// 根据方法、切点、AOP实例工厂、类名、序号生成切面实例
 		return new InstantiationModelAwarePointcutAdvisorImpl(expressionPointcut, candidateAdviceMethod,
 				this, aspectInstanceFactory, declarationOrderInAspect, aspectName);
 	}
 
 	@Nullable
 	private AspectJExpressionPointcut getPointcut(Method candidateAdviceMethod, Class<?> candidateAspectClass) {
+		/**
+		 * 查询方法上的切面注解
+		 *   - 根据注解生成相应类型的AspectJAnnotation
+		 *   - 在调用调用AspectJAnnotation的构造方法同时根据注解Value或Pointcut属性得到切点表达式 有argNames则设置参数名称
+		 */
 		AspectJAnnotation<?> aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
+		// 过滤哪些不含@Before、@Around、@After、@AfterReturning、@AfterThrowing注解的方法
 		if (aspectJAnnotation == null) {
 			return null;
 		}
 
+		// 生成带表达式的切面切入点 设置其切入点表达式
 		AspectJExpressionPointcut ajexp =
 				new AspectJExpressionPointcut(candidateAspectClass, new String[0], new Class<?>[0]);
 		ajexp.setExpression(aspectJAnnotation.getPointcutExpression());
@@ -238,6 +264,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 			MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
 
 		Class<?> candidateAspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
+		// 再次检验类的合法性
 		validate(candidateAspectClass);
 
 		AspectJAnnotation<?> aspectJAnnotation =
@@ -260,6 +287,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		AbstractAspectJAdvice springAdvice;
 
+		// 根据注解类型生成不同的通知实例
 		switch (aspectJAnnotation.getAnnotationType()) {
 			case AtPointcut:
 				if (logger.isDebugEnabled()) {
@@ -300,12 +328,23 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		}
 
 		// Now to configure the advice...
+		// 设置通知方法所属的类
 		springAdvice.setAspectName(aspectName);
+		/**
+		 * 设置通知的序号
+		 *   - 同一个类中有多个切面注解标识的方法时 按照排序规则进行排序
+		 *     - 有注解排在没有注解的前面
+		 *     - 有注解的按照@Around、@Before、@After、@AfterReturning、@AfterThrowing
+		 *     - 没有注解的按照方法名称的字符串顺序
+		 */
 		springAdvice.setDeclarationOrder(declarationOrder);
+		// 获取通知方法的所有参数
 		String[] argNames = this.parameterNameDiscoverer.getParameterNames(candidateAdviceMethod);
 		if (argNames != null) {
+			// 将通知方法上的参数设置到通知中
 			springAdvice.setArgumentNamesFromStringArray(argNames);
 		}
+		// 计算参数绑定工作
 		springAdvice.calculateArgumentBindings();
 
 		return springAdvice;

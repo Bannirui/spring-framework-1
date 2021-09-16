@@ -367,6 +367,8 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 	 * value. We need to calculate which advice parameter needs to be bound
 	 * to which argument name. There are multiple strategies for determining
 	 * this binding, which are arranged in a ChainOfResponsibility.
+	 *
+	 * 校验方法参数并绑定
 	 */
 	public final synchronized void calculateArgumentBindings() {
 		// The simple case... nothing to bind.
@@ -376,6 +378,7 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 
 		int numUnboundArgs = this.parameterTypes.length;
 		Class<?>[] parameterTypes = this.aspectJAdviceMethod.getParameterTypes();
+		// 切面注解标识的方法第一个参数要求是JoinPoint或StaticPart 若是@Around注解也可以是ProceedingJoinPoint
 		if (maybeBindJoinPoint(parameterTypes[0]) || maybeBindProceedingJoinPoint(parameterTypes[0]) ||
 				maybeBindJoinPointStaticPart(parameterTypes[0])) {
 			numUnboundArgs--;
@@ -383,7 +386,8 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 
 		if (numUnboundArgs > 0) {
 			// need to bind arguments by name as returned from the pointcut match
-			bindArgumentsByName(numUnboundArgs);
+			// 绑定属性
+			this.bindArgumentsByName(numUnboundArgs);
 		}
 
 		this.argumentsIntrospected = true;
@@ -432,7 +436,7 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 		}
 		if (this.argumentNames != null) {
 			// We have been able to determine the arg names.
-			bindExplicitArguments(numArgumentsExpectingToBind);
+			this.bindExplicitArguments(numArgumentsExpectingToBind);
 		}
 		else {
 			throw new IllegalStateException("Advice method [" + this.aspectJAdviceMethod.getName() + "] " +
@@ -462,6 +466,7 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 
 	private void bindExplicitArguments(int numArgumentsLeftToBind) {
 		Assert.state(this.argumentNames != null, "No argument names available");
+		// 该属性用来存储方法未绑定的参数名称及参数的序号
 		this.argumentBindings = new HashMap<>();
 
 		int numExpectedArgumentNames = this.aspectJAdviceMethod.getParameterCount();
@@ -474,11 +479,13 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 		// So we match in number...
 		int argumentIndexOffset = this.parameterTypes.length - numArgumentsLeftToBind;
 		for (int i = argumentIndexOffset; i < this.argumentNames.length; i++) {
+			// 存储未绑定的参数名称及其顺序的映射关系
 			this.argumentBindings.put(this.argumentNames[i], i);
 		}
 
 		// Check that returning and throwing were in the argument names list if
 		// specified, and find the discovered argument types.
+		// 如果@AfterReturning注解的returningName有值 进行验证 解析 得到定义返回值的类型
 		if (this.returningName != null) {
 			if (!this.argumentBindings.containsKey(this.returningName)) {
 				throw new IllegalStateException("Returning argument name '" + this.returningName +
@@ -490,6 +497,7 @@ public abstract class AbstractAspectJAdvice implements Advice, AspectJPrecedence
 				this.discoveredReturningGenericType = this.aspectJAdviceMethod.getGenericParameterTypes()[index];
 			}
 		}
+		// 如果@AfterThrowing注解的throwingName有值 进行验证 解析 得到抛出异常的类型
 		if (this.throwingName != null) {
 			if (!this.argumentBindings.containsKey(this.throwingName)) {
 				throw new IllegalStateException("Throwing argument name '" + this.throwingName +

@@ -90,14 +90,15 @@ public abstract class AopConfigUtils {
 
 	@Nullable
 	public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
-		return registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry, null);
+		return AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry, null);
 	}
 
 	@Nullable
 	public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
-		return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
+		// AnnotationAwareAspectJAutoProxyCreator这个类很重要 是实现AOP的核心
+		return AopConfigUtils.registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
 	}
 
 	public static void forceAutoProxyCreatorToUseClassProxying(BeanDefinitionRegistry registry) {
@@ -122,6 +123,7 @@ public abstract class AopConfigUtils {
 
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
+			// 判断优先级 如果优先级较高则替换原先的Bean
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
 				int requiredPriority = findPriorityForClass(cls);
@@ -132,6 +134,10 @@ public abstract class AopConfigUtils {
 			return null;
 		}
 
+		/**
+		 * 注册AnnotationAwareAspectJAutoProxyCreator到容器中
+		 *   - 负责基于注解的AOP动态代理实现
+		 */
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);

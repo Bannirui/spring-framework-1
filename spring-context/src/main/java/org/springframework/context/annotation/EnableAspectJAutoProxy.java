@@ -119,12 +119,22 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+/**
+ * Import注解可以引入一个类
+ *   - 将这个类注入到Spring IOC容器中被当前Spring管理
+ */
 @Import(AspectJAutoProxyRegistrar.class)
 public @interface EnableAspectJAutoProxy {
 
 	/**
 	 * Indicate whether subclass-based (CGLIB) proxies are to be created as opposed
 	 * to standard Java interface-based proxies. The default is {@code false}.
+	 *
+	 * proxyTargetClass这个属性的默认值是false
+	 *   - false
+	 *     - 尝试采用jdk动态代理织入增强(如果当前类没有实现接口则还是会使用cglib技术)
+	 *   - true
+	 *     - 强制采用cglib动态代理织入增强
 	 */
 	boolean proxyTargetClass() default false;
 
@@ -133,6 +143,9 @@ public @interface EnableAspectJAutoProxy {
 	 * for retrieval via the {@link org.springframework.aop.framework.AopContext} class.
 	 * Off by default, i.e. no guarantees that {@code AopContext} access will work.
 	 * @since 4.3.1
+	 *
+	 * 通过aop框架暴露该代理对象 aopContext能够访问
+	 *   - 为了解决类内部方法之间调用时无法增强的问题
 	 */
 	boolean exposeProxy() default false;
 
