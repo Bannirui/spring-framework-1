@@ -643,13 +643,16 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 			logger.debug("Executing prepared SQL statement" + (sql != null ? " [" + sql + "]" : ""));
 		}
 
+		// 根据具体的连接池组件获取数据库的连接
 		Connection con = DataSourceUtils.getConnection(obtainDataSource());
 		PreparedStatement ps = null;
 		try {
 			ps = psc.createPreparedStatement(con);
 			applyStatementSettings(ps);
+			// 调用回调函数也就是update方法中execute的lambda表达式
 			T result = action.doInPreparedStatement(ps);
-			handleWarnings(ps);
+			// 警告处理
+			this.handleWarnings(ps);
 			return result;
 		}
 		catch (SQLException ex) {
@@ -660,6 +663,7 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 			}
 			String sql = getSql(psc);
 			psc = null;
+			// 释放资源
 			JdbcUtils.closeStatement(ps);
 			ps = null;
 			DataSourceUtils.releaseConnection(con, getDataSource());
@@ -957,11 +961,18 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 
 		logger.debug("Executing prepared SQL update");
 
-		return updateCount(execute(psc, ps -> {
+		/**
+		 * 2个方法
+		 *   - 获取更新条数updateCount
+		 *   - 前置方法execute
+		 */
+		return this.updateCount(this.execute(psc, ps -> {
 			try {
 				if (pss != null) {
+					// 设置所需的全部参数
 					pss.setValues(ps);
 				}
+				// 调用jdbc的更新方法
 				int rows = ps.executeUpdate();
 				if (logger.isTraceEnabled()) {
 					logger.trace("SQL update affected " + rows + " rows");
@@ -1012,7 +1023,7 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 
 	@Override
 	public int update(String sql, @Nullable PreparedStatementSetter pss) throws DataAccessException {
-		return update(new SimplePreparedStatementCreator(sql), pss);
+		return this.update(new SimplePreparedStatementCreator(sql), pss);
 	}
 
 	@Override
@@ -1022,7 +1033,7 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 
 	@Override
 	public int update(String sql, @Nullable Object... args) throws DataAccessException {
-		return update(sql, newArgPreparedStatementSetter(args));
+		return this.update(sql, newArgPreparedStatementSetter(args));
 	}
 
 	@Override
