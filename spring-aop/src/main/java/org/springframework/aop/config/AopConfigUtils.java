@@ -66,7 +66,7 @@ public abstract class AopConfigUtils {
 
 	@Nullable
 	public static BeanDefinition registerAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
-		return registerAutoProxyCreatorIfNecessary(registry, null);
+		return AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry, null);
 	}
 
 	@Nullable
@@ -115,6 +115,14 @@ public abstract class AopConfigUtils {
 		}
 	}
 
+	/**
+	 * - 注册自动代理构建器这个Bean
+	 *   - org.springframework.aop.config.internalAutoProxyCreator
+	 * @param cls
+	 * @param registry
+	 * @param source
+	 * @return
+	 */
 	@Nullable
 	private static BeanDefinition registerOrEscalateApcAsRequired(
 			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) {
@@ -122,12 +130,20 @@ public abstract class AopConfigUtils {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
+			/**
+			 * 容器中已经存在AUTO_PROXY_CREATOR_BEAN_NAME = "org.springframework.aop.config.internalAutoProxyCreator"
+			 * 也就是说Spring容器中已经存在了一个自动代理构建器
+			 * 将原来的自动代理构建器取出来作为旧的 跟现在这个新的自动代理构建器进行优先级比较
+			 */
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
 			// 判断优先级 如果优先级较高则替换原先的Bean
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
+				// 旧的自动代理构建器
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
+				// 新的自动代理构建器
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
+					// 保存优先级高的自动代理构建器
 					apcDefinition.setBeanClassName(cls.getName());
 				}
 			}
@@ -135,13 +151,18 @@ public abstract class AopConfigUtils {
 		}
 
 		/**
-		 * 注册AnnotationAwareAspectJAutoProxyCreator到容器中
+		 * - 注册AnnotationAwareAspectJAutoProxyCreator到容器中
 		 *   - 负责基于注解的AOP动态代理实现
+		 * - Spring容器中还没有自动代理构建器的存在
+		 *   - 创建相应的BeanDefinition
 		 */
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		/**
+		 * - 向容器中注册自动代理构建器的BeanDefinition对象
+		 */
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
 	}

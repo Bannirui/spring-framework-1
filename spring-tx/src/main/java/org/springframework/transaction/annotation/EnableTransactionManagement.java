@@ -159,6 +159,10 @@ import org.springframework.core.Ordered;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+/**
+ * 事务的实现是通过开启@EnableTransactionMangement注解实现的
+ *   - @Import了TransactionManagementConfigurationSelector
+ */
 @Import(TransactionManagementConfigurationSelector.class)
 public @interface EnableTransactionManagement {
 

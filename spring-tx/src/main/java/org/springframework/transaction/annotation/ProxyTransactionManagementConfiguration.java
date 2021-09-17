@@ -34,6 +34,14 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * @since 3.1
  * @see EnableTransactionManagement
  * @see TransactionManagementConfigurationSelector
+ *
+ *
+ * 事务核心Bean的构建
+ * 这个类本质就是一个配置类 注册了3个Bean
+ *   - BeanFactoryTransactionAttributeSourceAdvisor
+ *     - 下面2个TransactionAttributeSource和TransactionInterceptor又注册到了BeanFactoryTransactionAttributeSourceAdvisor里面
+ *   - AnnotationTransactionAttributeSource
+ *   - TransactionInterceptor
  */
 @Configuration(proxyBeanMethods = false)
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
