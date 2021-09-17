@@ -156,7 +156,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	@Override
 	@Nullable
 	protected TransactionAttribute findTransactionAttribute(Method method) {
-		return determineTransactionAttribute(method);
+		return this.determineTransactionAttribute(method);
 	}
 
 	/**

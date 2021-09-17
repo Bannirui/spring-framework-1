@@ -62,6 +62,7 @@ public interface TransactionAttributeSource {
 	 * @return the matching transaction attribute, or {@code null} if none found
 	 */
 	@Nullable
-	TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass);
+	TransactionAttribute
+	getTransactionAttribute(Method method, @Nullable Class<?> targetClass);
 
 }
