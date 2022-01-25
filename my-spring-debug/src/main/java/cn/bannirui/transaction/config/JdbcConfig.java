@@ -27,7 +27,7 @@ public class JdbcConfig {
 		DruidDataSource druidDataSource = new DruidDataSource();
 		druidDataSource.setUsername("root");
 		druidDataSource.setPassword("19920308");
-		druidDataSource.setDriverClassName("com.mysql.jdbc.Driver");
+		druidDataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
 		druidDataSource.setUrl("jdbc:mysql://localhost:3306/test?characterEncoding=utf-8&useSSL=false");
 		return druidDataSource;
 	}

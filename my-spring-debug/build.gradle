@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":spring-aop"))
     implementation(project(":spring-aspects"))
     implementation(project(":spring-jdbc"))
+    implementation(project(":spring-tx"))
     implementation 'mysql:mysql-connector-java:8.0.25'
     implementation group: 'com.alibaba', name: 'druid', version: '1.2.5'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
