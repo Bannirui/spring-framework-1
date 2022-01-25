@@ -178,7 +178,7 @@ public @interface EnableTransactionManagement {
 	 * time. This approach has no negative impact in practice unless one is explicitly
 	 * expecting one type of proxy vs another, e.g. in tests.
 	 */
-	boolean proxyTargetClass() default false;
+	boolean proxyTargetClass() default false; // false=jdk动态代理 true=cglib动态代理
 
 	/**
 	 * Indicate how transactional advice should be applied.
@@ -190,13 +190,13 @@ public @interface EnableTransactionManagement {
 	 * scenario. For a more advanced mode of interception, consider switching this to
 	 * {@link AdviceMode#ASPECTJ}.
 	 */
-	AdviceMode mode() default AdviceMode.PROXY;
+	AdviceMode mode() default AdviceMode.PROXY; // proxy aspectj
 
 	/**
 	 * Indicate the ordering of the execution of the transaction advisor
 	 * when multiple advices are applied at a specific joinpoint.
 	 * <p>The default is {@link Ordered#LOWEST_PRECEDENCE}.
 	 */
-	int order() default Ordered.LOWEST_PRECEDENCE;
+	int order() default Ordered.LOWEST_PRECEDENCE; // spring中大量策略模式 大量实现有相同接口 ordered接口解决相同接口不同实现优先级问题 order值越大优先级越低
 
 }

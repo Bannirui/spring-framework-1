@@ -51,7 +51,7 @@ public class TransactionManagementConfigurationSelector extends AdviceModeImport
 		 *   - ASPECTJ
 		 */
 		switch (adviceMode) {
-			case PROXY:
+			case PROXY: // jdk动态代理
 				/**
 				 * 向Spring容器中注入了两个Bean
 				 *   - AutoProxyRegistrar
@@ -61,7 +61,7 @@ public class TransactionManagementConfigurationSelector extends AdviceModeImport
 				 */
 				return new String[] {AutoProxyRegistrar.class.getName(),
 						ProxyTransactionManagementConfiguration.class.getName()};
-			case ASPECTJ:
+			case ASPECTJ: // cglib动态代理
 				return new String[] {determineTransactionAspectClass()};
 			default:
 				return null;

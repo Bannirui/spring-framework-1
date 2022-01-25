@@ -125,7 +125,7 @@ public abstract class AopConfigUtils {
 	 */
 	@Nullable
 	private static BeanDefinition registerOrEscalateApcAsRequired(
-			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) {
+			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) { // cls=InfrastructureAdvisorAutoProxyCreator
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 

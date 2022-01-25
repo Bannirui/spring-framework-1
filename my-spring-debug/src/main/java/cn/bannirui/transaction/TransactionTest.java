@@ -2,6 +2,7 @@ package cn.bannirui.transaction;
 
 import cn.bannirui.transaction.config.JdbcConfig;
 import cn.bannirui.transaction.service.UserService;
+import cn.bannirui.transaction.service.UserServiceImpl;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 

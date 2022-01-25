@@ -64,12 +64,12 @@ public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 		Set<String> annTypes = importingClassMetadata.getAnnotationTypes();
 		for (String annType : annTypes) {
 			// 获取注解元信息
-			AnnotationAttributes candidate = AnnotationConfigUtils.attributesFor(importingClassMetadata, annType);
+			AnnotationAttributes candidate = AnnotationConfigUtils.attributesFor(importingClassMetadata, annType); // EnableTransactionManagement注解的3个属性 proxyTargetClass=false mode=proxy ordered=最大优先级
 			if (candidate == null) {
 				continue;
 			}
-			Object mode = candidate.get("mode");
-			Object proxyTargetClass = candidate.get("proxyTargetClass");
+			Object mode = candidate.get("mode"); // mode=proxy->spring aop
+			Object proxyTargetClass = candidate.get("proxyTargetClass"); // proxyTargetClass=false->jdk动态代理
 			if (mode != null && proxyTargetClass != null && AdviceMode.class == mode.getClass() &&
 					Boolean.class == proxyTargetClass.getClass()) {
 				candidateFound = true;
