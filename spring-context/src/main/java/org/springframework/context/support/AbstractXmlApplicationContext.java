@@ -80,24 +80,24 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 *
 	 */
 	@Override
-	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException {
+	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws BeansException, IOException { // 在AbstractRefreshableApplicationContext中只定义了抽象父类的loadBeanDefinition()方法 容器真正调用的是其子类AbstractXmlApplicationContext对该方法的实现 实现载入Bean定义
 		// Create a new XmlBeanDefinitionReader for the given BeanFactory.
 		// 实例化XmlBeanDefinitionReader
-		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+		XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory); // 创建XmlBeanDefinitionReader 创建Bean读取器 并通过回调设置到容器中 容器使用该读取器读取Bean配置资源
 
 		// Configure the bean definition reader with this context's
 		// resource loading environment.
-		beanDefinitionReader.setEnvironment(this.getEnvironment());
+		beanDefinitionReader.setEnvironment(this.getEnvironment()); // 为Bean读取器设置Spring资源加载器 AbstractXmlApplicationContext的祖父类AbstractApplicationContext继承DefaultResourceLoader 因此容器本身也是一个资源加载器
 		beanDefinitionReader.setResourceLoader(this);
-		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this));
+		beanDefinitionReader.setEntityResolver(new ResourceEntityResolver(this)); // 为Bean读取器设置SAX xml解析器
 
 		// Allow a subclass to provide custom initialization of the reader,
 		// then proceed with actually loading the bean definitions.
 		/**
 		 * 初始化BeanDefinitionReader
 		 */
-		this.initBeanDefinitionReader(beanDefinitionReader);
-		this.loadBeanDefinitions(beanDefinitionReader);
+		this.initBeanDefinitionReader(beanDefinitionReader); // 当Bean读取器读取Bean定义的xml资源文件时 启用xml校验机制
+		this.loadBeanDefinitions(beanDefinitionReader); // Bean读取器真正实现加载的方法
 	}
 
 	/**
@@ -124,14 +124,14 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #getResources
 	 * @see #getResourcePatternResolver
 	 */
-	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
+	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException { // xml Bean读取器加载Bean配置资源
 		// 查看有没有系统指定的配置文件
-		Resource[] configResources = this.getConfigResources();
+		Resource[] configResources = this.getConfigResources(); // 获取Bean配置资源的定位
 		if (configResources != null) {
-			reader.loadBeanDefinitions(configResources);
+			reader.loadBeanDefinitions(configResources); // xml Bean读取器调用其父类AbstractBeanDefinitionReader读取定位的Bean配置资源
 		}
 		// ClassPathXmlApplicationContext传入的classpath:application-ioc-xml.xml
-		String[] configLocations = super.getConfigLocations();
+		String[] configLocations = super.getConfigLocations(); // 如果子类中获取的Bean配置资源定位为空 则获取ClassPathXmlApplicationContext构造方法中setConfigLocations方法设置的资源
 		if (configLocations != null) {
 			reader.loadBeanDefinitions(configLocations);
 		}

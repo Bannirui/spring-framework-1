@@ -161,7 +161,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	private final Map<Class<?>, Object> resolvableDependencies = new ConcurrentHashMap<>(16);
 
 	/** Map of bean definition objects, keyed by bean name. */
-	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
+	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256); // 存储Spring IoC容器中注册解析的BeanDefinition
 
 	/** Map from bean name to merged BeanDefinitionHolder. */
 	private final Map<String, BeanDefinitionHolder> mergedBeanDefinitionHolders = new ConcurrentHashMap<>(256);
@@ -985,12 +985,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
-			throws BeanDefinitionStoreException {
+			throws BeanDefinitionStoreException { // Spring IoC容器注册解析的BeanDefinition
 
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
-		if (beanDefinition instanceof AbstractBeanDefinition) {
+		if (beanDefinition instanceof AbstractBeanDefinition) { // 校验解析的BeanDefinition
 			try {
 				((AbstractBeanDefinition) beanDefinition).validate();
 			}
@@ -1044,7 +1044,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			 *   - [注册Bean]这个动作结束之后Bean依然还没有初始化
 			 *   - 在Spring容器启动的最后会预初始化所有的singleton beans
 			 */
-			if (super.hasBeanCreationStarted()) {
+			if (super.hasBeanCreationStarted()) { // 注册的过程中需要线程同步 以保证数据的一致性
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				synchronized (this.beanDefinitionMap) {
 					this.beanDefinitionMap.put(beanName, beanDefinition);
@@ -1067,8 +1067,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.frozenBeanDefinitionNames = null;
 		}
 
-		if (existingDefinition != null || containsSingleton(beanName)) {
-			this.resetBeanDefinition(beanName);
+		if (existingDefinition != null || containsSingleton(beanName)) { // 检测是否已经注册过同名的BeanDefinition
+			this.resetBeanDefinition(beanName); // 重置所有已经注册过的BeanDefinition的缓存
 		}
 		else if (isConfigurationFrozen()) {
 			this.clearByTypeCache();

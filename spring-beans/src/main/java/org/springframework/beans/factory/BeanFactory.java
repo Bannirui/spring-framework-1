@@ -125,7 +125,7 @@ public interface BeanFactory {
 	 * {@code myJndiObject} is a FactoryBean, getting {@code &myJndiObject}
 	 * will return the factory, not the instance returned by the factory.
 	 */
-	String FACTORY_BEAN_PREFIX = "&";
+	String FACTORY_BEAN_PREFIX = "&"; // 对FactoryBean的转义定义 使用Bean的名字检索FactoryBean得到的对象是工厂生成的对象 如果需要得到工厂本身 需要转义在beanName前加上&前缀
 
 
 	/**
@@ -140,7 +140,7 @@ public interface BeanFactory {
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the specified name
 	 * @throws BeansException if the bean could not be obtained
 	 */
-	Object getBean(String name) throws BeansException;
+	Object getBean(String name) throws BeansException; // 根据Bean的名字 获取在IOC容器中得到的Bean实例
 
 	/**
 	 * Return an instance, which may be shared or independent, of the specified bean.
@@ -157,7 +157,7 @@ public interface BeanFactory {
 	 * @throws BeanNotOfRequiredTypeException if the bean is not of the required type
 	 * @throws BeansException if the bean could not be created
 	 */
-	<T> T getBean(String name, Class<T> requiredType) throws BeansException;
+	<T> T getBean(String name, Class<T> requiredType) throws BeansException; // 根据Bean的名字和Class类型得到Bean实例 增加了类型安全验证机制
 
 	/**
 	 * Return an instance, which may be shared or independent, of the specified bean.
@@ -252,7 +252,7 @@ public interface BeanFactory {
 	 * @param name the name of the bean to query
 	 * @return whether a bean with the given name is present
 	 */
-	boolean containsBean(String name);
+	boolean containsBean(String name); // 对Bean的检索 看看在IoC容器中是否存在这个名字的bean
 
 	/**
 	 * Is this bean a shared singleton? That is, will {@link #getBean} always
@@ -339,7 +339,7 @@ public interface BeanFactory {
 	 * @see #isTypeMatch
 	 */
 	@Nullable
-	Class<?> getType(String name) throws NoSuchBeanDefinitionException;
+	Class<?> getType(String name) throws NoSuchBeanDefinitionException; // 得到Bean实例的Class类型
 
 	/**
 	 * Determine the type of the bean with the given name. More specifically,
@@ -373,6 +373,6 @@ public interface BeanFactory {
 	 * @return the aliases, or an empty array if none
 	 * @see #getBean
 	 */
-	String[] getAliases(String name);
+	String[] getAliases(String name); // 得到Bean的别名 如果根据别名检索 那么原名也会被检索出来
 
 }

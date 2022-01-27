@@ -91,12 +91,12 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		/**
-		 * 子类的构造方法执行之前隐士触发父类GenericApplicationContext的无参构造方法
+		 * 子类的构造方法执行之前隐式触发父类GenericApplicationContext的无参构造方法
 		 *   - 创建DefaultListableBeanFactory实例
 		 */
 		this();
 		register(componentClasses);
-		refresh();
+		super.refresh();
 	}
 
 	/**

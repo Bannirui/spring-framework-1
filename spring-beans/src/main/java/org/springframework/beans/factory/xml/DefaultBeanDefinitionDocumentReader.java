@@ -91,8 +91,8 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * specified at the {@code <beans/>} level; then parses the contained bean definitions.
 	 */
 	@Override
-	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
-		this.readerContext = readerContext;
+	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) { // BeanDefinitionDocumentReader接口通过registerBeanDefinitions()方法调用该实现类对文档对象进行解析 根据Spring DTO对定义规则解析Bean定义的文档对象
+		this.readerContext = readerContext; // 获得XML描述符
 		this.doRegisterBeanDefinitions(doc.getDocumentElement());
 	}
 
@@ -126,7 +126,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
 		// 当前根结点
-		BeanDefinitionParserDelegate parent = this.delegate;
+		BeanDefinitionParserDelegate parent = this.delegate; // 具体的解析过程由BeanDefinitionParserDelegate实现 BeanDefinitionParserDelegate中定义了Spring Bean定义XMl文件的各种元素
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
 		if (this.delegate.isDefaultNamespace(root)) {
@@ -154,22 +154,22 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		 * 模板方法
 		 *   - 空实现 前置扩展点
 		 */
-		this.preProcessXml(root);
-		this.parseBeanDefinitions(root, this.delegate);
+		this.preProcessXml(root); // 在解析Bean定义之前 进行自定义解析 增强解析过程的可扩展性
+		this.parseBeanDefinitions(root, this.delegate); // 从文档的根元素开始进行Bean定义的文档对象的解析
 		/**
 		 * 模板方法
 		 *   - 空实现 后置扩展点
 		 */
-		this.postProcessXml(root);
+		this.postProcessXml(root); // 在解析Bean定义之后 进行自定义解析 增加解析过程的可扩展性
 
 		this.delegate = parent;
 	}
 
-	protected BeanDefinitionParserDelegate createDelegate(
+	protected BeanDefinitionParserDelegate createDelegate( // 创建BeanDefinitionParserDelegate 用于完成真正的解析过程
 			XmlReaderContext readerContext, Element root, @Nullable BeanDefinitionParserDelegate parentDelegate) {
 
 		BeanDefinitionParserDelegate delegate = new BeanDefinitionParserDelegate(readerContext);
-		delegate.initDefaults(root, parentDelegate);
+		delegate.initDefaults(root, parentDelegate); // BeanDefinitionParserDelegate初始化Document根元素
 		return delegate;
 	}
 
@@ -178,7 +178,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * "import", "alias", "bean".
 	 * @param root the DOM root element of the document
 	 */
-	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) {
+	protected void parseBeanDefinitions(Element root, BeanDefinitionParserDelegate delegate) { // 使用Spring的Bean规则从文档的根元素开始Bean定义的文档对象的解析
 		/**
 		 * default namespace涉及到4个标签
 		 *   - import
@@ -186,41 +186,41 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		 *   - bean
 		 *   - beans
 		 */
-		if (delegate.isDefaultNamespace(root)) {
-			NodeList nl = root.getChildNodes();
+		if (delegate.isDefaultNamespace(root)) { // Bean定义的文档对象使用了Spring默认的XML命名空间
+			NodeList nl = root.getChildNodes(); // 获取Bean定义的文档对象根元素的所有子节点
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
-				if (node instanceof Element) {
+				if (node instanceof Element) { // 获得的文档节点是XML元素节点
 					Element ele = (Element) node;
-					if (delegate.isDefaultNamespace(ele)) {
+					if (delegate.isDefaultNamespace(ele)) { // Bean定义的文档的元素节点使用的是Spring默认的XML命名空间
 						// 解析default namespace下面的几个元素
-						this.parseDefaultElement(ele, delegate);
+						this.parseDefaultElement(ele, delegate); // 使用Spring的Bean规则解析元素节点
 					}
 					else {
 						// 解析其他namespace的标签
-						delegate.parseCustomElement(ele);
+						delegate.parseCustomElement(ele); // 如果没有使用Spring默认的XML命名空间 则使用用户自定义的解析规则解析元素节点
 					}
 				}
 			}
 		}
 		else {
-			delegate.parseCustomElement(root);
+			delegate.parseCustomElement(root); // 文档的根节点没有使用Spring默认的命名空间 使用自定义的解析规则解析文档的根节点
 		}
 	}
 
-	private void parseDefaultElement(Element ele, BeanDefinitionParserDelegate delegate) {
-		if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) {
+	private void parseDefaultElement(Element ele, BeanDefinitionParserDelegate delegate) { // 使用Spring的Bean规则解析文档元素节点
+		if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) { // 如果节点是<import>导入元素 进行导入解析
 			// 处理<import />标签
 			this.importBeanDefinitionResource(ele);
 		}
-		else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) {
+		else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) { // 如果节点是<alias>别名元素 进行别名解析
 			/**
 			 * 处理<alias />标签
 			 *   - <alias name="fromName" alias="toName" />
 			 */
 			this.processAliasRegistration(ele);
 		}
-		else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) {
+		else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) { // 如果节点既不是导入元素 也不是别名元素 而是普通的<bean>元素 则按照Spring的Bean规则解析元素
 			// 处理<bean />标签
 			this.processBeanDefinition(ele, delegate);
 		}
@@ -235,24 +235,24 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	 * Parse an "import" element and load the bean definitions
 	 * from the given resource into the bean factory.
 	 */
-	protected void importBeanDefinitionResource(Element ele) {
-		String location = ele.getAttribute(RESOURCE_ATTRIBUTE);
-		if (!StringUtils.hasText(location)) {
+	protected void importBeanDefinitionResource(Element ele) { // 解析<import>导入元素 从给定的导入路径加载Bean资源到Spring IoC容器中
+		String location = ele.getAttribute(RESOURCE_ATTRIBUTE); // 获取给定的导入元素的location属性
+		if (!StringUtils.hasText(location)) { // 如果给定的导入元素的location属性为空 则没有导入任何资源 直接返回
 			getReaderContext().error("Resource location must not be empty", ele);
 			return;
 		}
 
 		// Resolve system properties: e.g. "${user.dir}"
-		location = getReaderContext().getEnvironment().resolveRequiredPlaceholders(location);
+		location = getReaderContext().getEnvironment().resolveRequiredPlaceholders(location); // 使用系统变量值解析location属性值
 
 		Set<Resource> actualResources = new LinkedHashSet<>(4);
 
 		// Discover whether the location is an absolute or relative URI
-		boolean absoluteLocation = false;
+		boolean absoluteLocation = false; // 标识给定的导入元素的location属性值是否是绝对路径
 		try {
 			absoluteLocation = ResourcePatternUtils.isUrl(location) || ResourceUtils.toURI(location).isAbsolute();
 		}
-		catch (URISyntaxException ex) {
+		catch (URISyntaxException ex) { // 给定的导入元素的location属性值不是绝对路径
 			// cannot convert to an URI, considering the location relative
 			// unless it is the well-known Spring prefix "classpath*:"
 		}
@@ -260,7 +260,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// Absolute or relative?
 		if (absoluteLocation) {
 			try {
-				int importCount = getReaderContext().getReader().loadBeanDefinitions(location, actualResources);
+				int importCount = getReaderContext().getReader().loadBeanDefinitions(location, actualResources); // 使用资源读入器加载给定路径的Bean资源
 				if (logger.isTraceEnabled()) {
 					logger.trace("Imported " + importCount + " bean definitions from URL location [" + location + "]");
 				}
@@ -270,17 +270,17 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 						"Failed to import bean definitions from URL location [" + location + "]", ele, ex);
 			}
 		}
-		else {
+		else { // 给定的导入元素的location属性值是相对路径
 			// No URL -> considering resource location as relative to the current file.
 			try {
 				int importCount;
-				Resource relativeResource = getReaderContext().getResource().createRelative(location);
-				if (relativeResource.exists()) {
-					importCount = getReaderContext().getReader().loadBeanDefinitions(relativeResource);
+				Resource relativeResource = getReaderContext().getResource().createRelative(location); // 将给定导入元素的location封装为相对路径资源
+				if (relativeResource.exists()) { // 封装的相对路径资源存在
+					importCount = getReaderContext().getReader().loadBeanDefinitions(relativeResource); // 使用资源读入器加载Bean资源
 					actualResources.add(relativeResource);
 				}
-				else {
-					String baseLocation = getReaderContext().getResource().getURL().toString();
+				else { // 封装的相对枯井资源不存在
+					String baseLocation = getReaderContext().getResource().getURL().toString(); // 获取Spring IoC容器资源读入器的基本路径
 					importCount = getReaderContext().getReader().loadBeanDefinitions(
 							StringUtils.applyRelativePath(baseLocation, location), actualResources);
 				}
@@ -297,15 +297,15 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			}
 		}
 		Resource[] actResArray = actualResources.toArray(new Resource[0]);
-		getReaderContext().fireImportProcessed(location, actResArray, extractSource(ele));
+		getReaderContext().fireImportProcessed(location, actResArray, extractSource(ele)); // 在解析完<import>元素之后 发送容器导入其他资源处理完成事件
 	}
 
 	/**
 	 * Process the given alias element, registering the alias with the registry.
 	 */
-	protected void processAliasRegistration(Element ele) {
-		String name = ele.getAttribute(NAME_ATTRIBUTE);
-		String alias = ele.getAttribute(ALIAS_ATTRIBUTE);
+	protected void processAliasRegistration(Element ele) { // 解析<alias>别名元素 为Bean向Spring IoC容器注册别名
+		String name = ele.getAttribute(NAME_ATTRIBUTE); // 获取<alias>别名元素中的name属性值
+		String alias = ele.getAttribute(ALIAS_ATTRIBUTE); // 获取<alias>别名元素中alias属性值
 		boolean valid = true;
 		if (!StringUtils.hasText(name)) {
 			getReaderContext().error("Name must not be empty", ele);
@@ -340,7 +340,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 			try {
 				// Register the final decorated instance.
 				// 注册Bean
-				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry());
+				BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, getReaderContext().getRegistry()); // 将解析的BeanDefinitionHolder注册到Spring IoC容器中
 			}
 			catch (BeanDefinitionStoreException ex) {
 				getReaderContext().error("Failed to register bean definition with name '" +

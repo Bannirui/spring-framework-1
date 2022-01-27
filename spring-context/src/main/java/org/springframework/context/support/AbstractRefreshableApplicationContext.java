@@ -124,7 +124,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * initializing a fresh bean factory for the next phase of the context's lifecycle.
 	 */
 	@Override
-	protected final void refreshBeanFactory() throws BeansException {
+	protected final void refreshBeanFactory() throws BeansException { // AbstractApplicationContext类中只抽象定义了refreshBeanFactory()方法 容器真正调用的是子类AbstractRefreshableApplicationContext实现的refreshBeanFactory()方法
 		/**
 		 * 判断当前ApplicationContext是否存在BeanFactory
 		 *   - 如果当前ApplicationContext存在BeanFactory就销毁所有的Bean 关闭BeanFactory
@@ -138,18 +138,18 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 		}
 		try {
 			// 初始化DefaultListableBeanFactory
-			DefaultListableBeanFactory beanFactory = this.createBeanFactory();
+			DefaultListableBeanFactory beanFactory = this.createBeanFactory(); // 创建IoC容器
 			beanFactory.setSerializationId(super.getId());
 			/**
 			 * 设置BeanFactory的两个配置属性
 			 *   - 是否允许Bean覆盖
 			 *   - 是否允许循环饮用
 			 */
-			this.customizeBeanFactory(beanFactory);
+			this.customizeBeanFactory(beanFactory); // 对IoC容器进行定制化(设置启动参数 开启注解的自动装配)
 			/**
 			 * 加载Bean到BeanFactory中
 			 */
-			this.loadBeanDefinitions(beanFactory);
+			this.loadBeanDefinitions(beanFactory); // 调用载入Bean定义的方法(使用委派模式 当前类只定义了抽象的loadBeanDefinitions()方法 调用子类容器的实现)
 			this.beanFactory = beanFactory;
 		}
 		catch (IOException ex) {
