@@ -195,58 +195,40 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 	 * @see ClassPathBeanDefinitionScanner
 	 */
 	@Override
-	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) {
-		AnnotatedBeanDefinitionReader reader = getAnnotatedBeanDefinitionReader(beanFactory);
-		ClassPathBeanDefinitionScanner scanner = getClassPathBeanDefinitionScanner(beanFactory);
+	protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) { // AnnotationConfigWebApplicationContext是AnnotationConfigApplicationContext的Web版本 载入注解Bean定义资源
+		AnnotatedBeanDefinitionReader reader = this.getAnnotatedBeanDefinitionReader(beanFactory); // 为容器设置注解Bean定义读取器
+		ClassPathBeanDefinitionScanner scanner = this.getClassPathBeanDefinitionScanner(beanFactory); // 为容器设置类路径Bean定义扫描器
 
-		BeanNameGenerator beanNameGenerator = getBeanNameGenerator();
-		if (beanNameGenerator != null) {
+		BeanNameGenerator beanNameGenerator = this.getBeanNameGenerator(); // 获取容器胡Bean名称生成器
+		if (beanNameGenerator != null) { // 为注解Bean定义读取器和类路径扫描器设置Bean名称生成器
 			reader.setBeanNameGenerator(beanNameGenerator);
 			scanner.setBeanNameGenerator(beanNameGenerator);
 			beanFactory.registerSingleton(AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR, beanNameGenerator);
 		}
 
-		ScopeMetadataResolver scopeMetadataResolver = getScopeMetadataResolver();
-		if (scopeMetadataResolver != null) {
+		ScopeMetadataResolver scopeMetadataResolver = this.getScopeMetadataResolver(); // 获取容器的作用域元信息解析器
+		if (scopeMetadataResolver != null) { // 为注解Bean定义读取器和类路径扫描器设置作用域元信息解析器
 			reader.setScopeMetadataResolver(scopeMetadataResolver);
 			scanner.setScopeMetadataResolver(scopeMetadataResolver);
 		}
 
 		if (!this.componentClasses.isEmpty()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Registering component classes: [" +
-						StringUtils.collectionToCommaDelimitedString(this.componentClasses) + "]");
-			}
 			reader.register(ClassUtils.toClassArray(this.componentClasses));
 		}
 
 		if (!this.basePackages.isEmpty()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Scanning base packages: [" +
-						StringUtils.collectionToCommaDelimitedString(this.basePackages) + "]");
-			}
 			scanner.scan(StringUtils.toStringArray(this.basePackages));
 		}
 
-		String[] configLocations = getConfigLocations();
+		String[] configLocations = super.getConfigLocations(); // 获取容器定义的Bean定义资源路径
 		if (configLocations != null) {
 			for (String configLocation : configLocations) {
 				try {
-					Class<?> clazz = ClassUtils.forName(configLocation, getClassLoader());
-					if (logger.isTraceEnabled()) {
-						logger.trace("Registering [" + configLocation + "]");
-					}
+					Class<?> clazz = ClassUtils.forName(configLocation, getClassLoader()); // 使用当前容器的类加载器加载定位路径的字节码文件
 					reader.register(clazz);
 				}
 				catch (ClassNotFoundException ex) {
-					if (logger.isTraceEnabled()) {
-						logger.trace("Could not load class for config location [" + configLocation +
-								"] - trying package scan. " + ex);
-					}
-					int count = scanner.scan(configLocation);
-					if (count == 0 && logger.isDebugEnabled()) {
-						logger.debug("No component classes found for specified class/package [" + configLocation + "]");
-					}
+					int count = scanner.scan(configLocation); // 如果容器类加载器加载定义路径的Bean定义资源失败 则启用容器类路径扫描器扫描给定路径包及其子包中的类
 				}
 			}
 		}
