@@ -230,13 +230,13 @@ public abstract class AnnotationConfigUtils {
 		}
 	}
 
-	public static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd) {
+	public static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd) { // 在向容器注册Bean之前 首先对注解Bean定义类中的通用注解进行处理
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());
 	}
 
 	static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd, AnnotatedTypeMetadata metadata) {
 		AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);
-		if (lazy != null) {
+		if (lazy != null) { // 如果Bean定义中有@Lazy注解 则将该Bean预实例话属性设置为@Lazy注解的值
 			abd.setLazyInit(lazy.getBoolean("value"));
 		}
 		else if (abd.getMetadata() != metadata) {
@@ -246,11 +246,11 @@ public abstract class AnnotationConfigUtils {
 			}
 		}
 
-		if (metadata.isAnnotated(Primary.class.getName())) {
+		if (metadata.isAnnotated(Primary.class.getName())) { // 如果Bean定义中有@Primary注解 则将该Bean设置为autowiring自动依赖注入装配的首选对象
 			abd.setPrimary(true);
 		}
 		AnnotationAttributes dependsOn = attributesFor(metadata, DependsOn.class);
-		if (dependsOn != null) {
+		if (dependsOn != null) { // 如果Bean定义中有@DependsOn注解 则为该Bean设置所依赖的Bean名称
 			abd.setDependsOn(dependsOn.getStringArray("value"));
 		}
 
@@ -264,15 +264,15 @@ public abstract class AnnotationConfigUtils {
 		}
 	}
 
-	static BeanDefinitionHolder applyScopedProxyMode(
+	static BeanDefinitionHolder applyScopedProxyMode( // 根据注解Bean定义类中配置的作用域@Scope注解的值 为Bean定义应用相应的代理模式 主要在Spring AOP中使用
 			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
 
-		ScopedProxyMode scopedProxyMode = metadata.getScopedProxyMode();
-		if (scopedProxyMode.equals(ScopedProxyMode.NO)) {
+		ScopedProxyMode scopedProxyMode = metadata.getScopedProxyMode(); // 获取注解Bean定义类中@Scope注解的proxyMode属性值
+		if (scopedProxyMode.equals(ScopedProxyMode.NO)) { // 如果配置的@Scope注解的proxyMode属性值为NO 则不应用代理模式
 			return definition;
 		}
-		boolean proxyTargetClass = scopedProxyMode.equals(ScopedProxyMode.TARGET_CLASS);
-		return ScopedProxyCreator.createScopedProxy(definition, registry, proxyTargetClass);
+		boolean proxyTargetClass = scopedProxyMode.equals(ScopedProxyMode.TARGET_CLASS); // 获取配置的@Scope注解的proxyMode属性值 如果为TARGET_CLASS 则返回true 如果为INTERFACE则返回false
+		return ScopedProxyCreator.createScopedProxy(definition, registry, proxyTargetClass); // 为注册的Bean创建相应模式的代理对象
 	}
 
 	@Nullable

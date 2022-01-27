@@ -93,9 +93,9 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	private String resourcePattern = DEFAULT_RESOURCE_PATTERN;
 
-	private final List<TypeFilter> includeFilters = new ArrayList<>();
+	private final List<TypeFilter> includeFilters = new ArrayList<>(); // 保存过滤规则包含的注解 即Spring默认的@Component、@Repository、@Service、@Controller注解的Bean 以及Java EE 6的@ManagedBean和JSR-330的@Named注解
 
-	private final List<TypeFilter> excludeFilters = new ArrayList<>();
+	private final List<TypeFilter> excludeFilters = new ArrayList<>(); // 保存过滤规则要排除的注解
 
 	@Nullable
 	private Environment environment;
@@ -128,7 +128,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * stereotype annotations
 	 * @see #registerDefaultFilters()
 	 */
-	public ClassPathScanningCandidateComponentProvider(boolean useDefaultFilters) {
+	public ClassPathScanningCandidateComponentProvider(boolean useDefaultFilters) { // 在子类ClassPathBeanDefinitionScanner的构造方法中被调用
 		this(useDefaultFilters, new StandardEnvironment());
 	}
 
@@ -142,8 +142,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @see #registerDefaultFilters()
 	 */
 	public ClassPathScanningCandidateComponentProvider(boolean useDefaultFilters, Environment environment) {
-		if (useDefaultFilters) {
-			registerDefaultFilters();
+		if (useDefaultFilters) { // 使用Spring默认的过滤规则
+			this.registerDefaultFilters(); // 向容器中注册过滤规则
 		}
 		setEnvironment(environment);
 		setResourceLoader(null);
@@ -203,11 +203,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
-		this.includeFilters.add(new AnnotationTypeFilter(Component.class));
-		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
+		this.includeFilters.add(new AnnotationTypeFilter(Component.class)); // 向要包含的过滤规则中添加@Component注解类(Spring中@Repositiry、@Service、@Controller都是Component)
+		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader(); // 获取当前的类加载器
 		try {
 			this.includeFilters.add(new AnnotationTypeFilter(
-					((Class<? extends Annotation>) ClassUtils.forName("javax.annotation.ManagedBean", cl)), false));
+					((Class<? extends Annotation>) ClassUtils.forName("javax.annotation.ManagedBean", cl)), false)); // 向要包含的过滤规则中添加Java EE 6的@Managed注解
 			logger.trace("JSR-250 'javax.annotation.ManagedBean' found and supported for component scanning");
 		}
 		catch (ClassNotFoundException ex) {
@@ -215,7 +215,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		}
 		try {
 			this.includeFilters.add(new AnnotationTypeFilter(
-					((Class<? extends Annotation>) ClassUtils.forName("javax.inject.Named", cl)), false));
+					((Class<? extends Annotation>) ClassUtils.forName("javax.inject.Named", cl)), false)); // 向要包含的过滤规则中添加JSR-330的@Named注解
 			logger.trace("JSR-330 'javax.inject.Named' annotation found and supported for component scanning");
 		}
 		catch (ClassNotFoundException ex) {
@@ -307,7 +307,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @param basePackage the package to check for annotated classes
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
-	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
+	public Set<BeanDefinition> findCandidateComponents(String basePackage) { // 实现扫描给定类路径包的功能 扫描给定包及其子包的类
 		if (this.componentsIndex != null && this.indexSupportsIncludeFilters()) {
 			// 使用Filter指定忽略包不扫描
 			return this.addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
@@ -372,7 +372,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	private Set<BeanDefinition> addCandidateComponentsFromIndex(CandidateComponentsIndex index, String basePackage) {
-		Set<BeanDefinition> candidates = new LinkedHashSet<>();
+		Set<BeanDefinition> candidates = new LinkedHashSet<>(); // 创建存储扫描到的类的集合
 		try {
 			Set<String> types = new HashSet<>();
 			for (TypeFilter filter : this.includeFilters) {
@@ -385,11 +385,11 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
 			for (String type : types) {
-				MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(type);
-				if (isCandidateComponent(metadataReader)) {
-					ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
+				MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(type); // 为指定资源获取元数据读取器 元数据读取器通过汇编(ASM)读取资源的元信息
+				if (this.isCandidateComponent(metadataReader)) { // 扫描到的类符合容器配置的过滤规则
+					ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader); // 通过汇编(ASM)读取字节码中的Bean定义元信息
 					sbd.setSource(metadataReader.getResource());
-					if (isCandidateComponent(sbd)) {
+					if (this.isCandidateComponent(sbd)) {
 						if (debugEnabled) {
 							logger.debug("Using candidate component class from index: " + type);
 						}
@@ -489,18 +489,18 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @param metadataReader the ASM ClassReader for the class
 	 * @return whether the class qualifies as a candidate component
 	 */
-	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException { // 判断元信息读取器读取的类是否符合容器定义的注解过滤规则
 		for (TypeFilter tf : this.excludeFilters) {
-			if (tf.match(metadataReader, getMetadataReaderFactory())) {
+			if (tf.match(metadataReader, getMetadataReaderFactory())) { // 如果读取的类的注解在排除注解过滤规则中 返回false
 				return false;
 			}
 		}
 		for (TypeFilter tf : this.includeFilters) {
-			if (tf.match(metadataReader, getMetadataReaderFactory())) {
+			if (tf.match(metadataReader, getMetadataReaderFactory())) { // 如果读取的类的注解在包含的注解过滤规则中 返回true
 				return isConditionMatch(metadataReader);
 			}
 		}
-		return false;
+		return false; // 读取的类的注解既不在排除规则中 也不在包含规则中 返回false
 	}
 
 	/**

@@ -157,7 +157,7 @@ public abstract class BeanDefinitionReaderUtils {
 	 *
 	 * 注册Bean的实现
 	 */
-	public static void registerBeanDefinition(
+	public static void registerBeanDefinition( // 校验BeanDefinition信息 然后将Bean添加到容器中一个管理BeanDefinition的HashMap中
 			BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry)
 			throws BeanDefinitionStoreException { // 将解析的BeanDefinitionHolder注册到Spring IoC容器中 真正完成注册功能的是DefaultListableBeanFactory
 

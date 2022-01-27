@@ -132,7 +132,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param componentClasses one or more component classes,
 	 * e.g. {@link Configuration @Configuration} classes
 	 */
-	public void register(Class<?>... componentClasses) {
+	public void register(Class<?>... componentClasses) { // 注册多个注解Bean定义类
 		for (Class<?> componentClass : componentClasses) {
 			registerBean(componentClass);
 		}
@@ -143,7 +143,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * class-declared annotations.
 	 * @param beanClass the class of the bean
 	 */
-	public void registerBean(Class<?> beanClass) {
+	public void registerBean(Class<?> beanClass) { // 注册一个注解Bean定义类
 		doRegisterBean(beanClass, null, null, null, null);
 	}
 
@@ -167,7 +167,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * in addition to qualifiers at the bean class level
 	 */
 	@SuppressWarnings("unchecked")
-	public void registerBean(Class<?> beanClass, Class<? extends Annotation>... qualifiers) {
+	public void registerBean(Class<?> beanClass, Class<? extends Annotation>... qualifiers) { // Bean定义读取器注册注解Bean定义的入口方法
 		doRegisterBean(beanClass, null, qualifiers, null, null);
 	}
 
@@ -248,28 +248,28 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	private <T> void doRegisterBean(Class<T> beanClass, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
-			@Nullable BeanDefinitionCustomizer[] customizers) {
+			@Nullable BeanDefinitionCustomizer[] customizers) { // Bean定义读取器向容器注册注解Bean定义类 1使用注解元数据解析器解析注解Bean中关于作用域的配置 2使用AnnotationConfigUtils的processCommonDefinitionAnnotations()方法处理注解Bean定义类中的通用注解 3使用AnnotationUtils的applyScopedProxyMode()方法创建作用域的代理对象 4 通过BeanDefinitionReaderUtils向容器注册Bean
 
-		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass); // 根据指定的注解Bean定义类 创建Spring容器中对注解Bean的封装的数据结构
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
 		abd.setInstanceSupplier(supplier);
-		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
-		abd.setScope(scopeMetadata.getScopeName());
-		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
+		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd); // 解析注解Bean定义的作用域 @Scope("prototype")为原型类型 @Scope("singleton")为单例类型
+		abd.setScope(scopeMetadata.getScopeName()); // 为注解Bean定义设置作用域
+		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry)); // 为注解Bean定义生成Bean名称
 
-		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
-		if (qualifiers != null) {
+		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd); // 处理注解Bean定义中的通用注解
+		if (qualifiers != null) { // 如果在向容器注册注解Bean定义时 使用了额外的限定符注解 则解析限定符注解 主要配置autowired自动依赖注入装配的限定条件 即@Qualifier注解 Spring自动依赖注入默认按类型装配 如果使用了@Qualifier则按名称装配
 			for (Class<? extends Annotation> qualifier : qualifiers) {
-				if (Primary.class == qualifier) {
+				if (Primary.class == qualifier) { // 如果配置了@Primary注解 设置该Bean为autowiring自动依赖注入装配时的首选
 					abd.setPrimary(true);
 				}
-				else if (Lazy.class == qualifier) {
+				else if (Lazy.class == qualifier) { // 如果配置了@Lazy注解 则设置该Bean为非延迟初始化 如果没有配置 则该Bean为预实例话
 					abd.setLazyInit(true);
 				}
-				else {
+				else { // 如果使用了除@Primary和@Lazy之外的其他注解 则为该Bean添加一个autowiring自动依赖注入装配限定符 该Bean在进行autowiring自动依赖注入装配时 根据名称装配限定符指定的Bean
 					abd.addQualifier(new AutowireCandidateQualifier(qualifier));
 				}
 			}
@@ -280,9 +280,9 @@ public class AnnotatedBeanDefinitionReader {
 			}
 		}
 
-		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
-		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
-		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
+		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName); // 创建一个指定Bean名称的Bean定义对象 封装注解Bean定义类数据
+		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry); // 根据注解Bean定义类中配置的作用域 创建相应的代理对象
+		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry); // 向IoC容器注册注解Bean类定义对象
 	}
 
 

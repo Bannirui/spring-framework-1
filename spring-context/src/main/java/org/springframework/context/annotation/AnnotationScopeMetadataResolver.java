@@ -75,19 +75,19 @@ public class AnnotationScopeMetadataResolver implements ScopeMetadataResolver {
 
 
 	@Override
-	public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) {
+	public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) { // 解析注解Bean定义类中的作用域元信息 判断注册的Bean是prototype还是singleton
 		ScopeMetadata metadata = new ScopeMetadata();
 		if (definition instanceof AnnotatedBeanDefinition) {
 			AnnotatedBeanDefinition annDef = (AnnotatedBeanDefinition) definition;
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(
-					annDef.getMetadata(), this.scopeAnnotationType);
-			if (attributes != null) {
+					annDef.getMetadata(), this.scopeAnnotationType); // 从注解Bean定义类的属性中查找属性为Scope的值 @Scope注解的值 annDef.getMetadata()方法将Bean中所有的注解和注解的值存放在一个map集合中
+			if (attributes != null) { // 将获取的@Scope注解的值设置到要返回的对象中
 				metadata.setScopeName(attributes.getString("value"));
-				ScopedProxyMode proxyMode = attributes.getEnum("proxyMode");
+				ScopedProxyMode proxyMode = attributes.getEnum("proxyMode"); // 获取@Scope注解中的proxyMode属性值 在创建代理对象的时候会用到
 				if (proxyMode == ScopedProxyMode.DEFAULT) {
-					proxyMode = this.defaultProxyMode;
+					proxyMode = this.defaultProxyMode; // 如果@Scope注解中proxyMode属性值为DEFAULT或者NO 设置proxyMode为NO
 				}
-				metadata.setScopedProxyMode(proxyMode);
+				metadata.setScopedProxyMode(proxyMode); // 为返回的元数据设置作用域元信息
 			}
 		}
 		return metadata;
