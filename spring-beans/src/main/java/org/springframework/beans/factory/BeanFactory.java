@@ -117,7 +117,7 @@ import org.springframework.lang.Nullable;
  * @see DisposableBean#destroy
  * @see org.springframework.beans.factory.support.RootBeanDefinition#getDestroyMethodName
  */
-public interface BeanFactory {
+public interface BeanFactory { // 当Spring IoC容器完成了Bean定义资源的定位、载入和解析注册 IoC容器就可以管理Bean定义的相关数据了 此时IoC容器还没有对所管理的Bean定义进行依赖注入(DI) 依赖注入在以下两种情况下发生 1用户第一次调用getBean()方法时 IoC容器触发依赖注入 2当用户在配置文件中将<bean>元素配置了lazy-init=false属性时 即让容器在解析注册Bean定义时进行预实例化 触发依赖注入 BeanFactory定义了IoC容器的基本功能规范 是Spring IoC容器所应遵守的最低层和最基本的编程规范
 
 	/**
 	 * Used to dereference a {@link FactoryBean} instance and distinguish it from

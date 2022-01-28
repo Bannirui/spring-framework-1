@@ -264,8 +264,8 @@ public abstract class AnnotationConfigUtils {
 		}
 	}
 
-	static BeanDefinitionHolder applyScopedProxyMode( // 根据注解Bean定义类中配置的作用域@Scope注解的值 为Bean定义应用相应的代理模式 主要在Spring AOP中使用
-			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
+	static BeanDefinitionHolder applyScopedProxyMode(
+			ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) { // 根据注解Bean定义类中配置的作用域@Scope注解的值 为Bean定义应用相应的代理模式 主要在Spring AOP中使用
 
 		ScopedProxyMode scopedProxyMode = metadata.getScopedProxyMode(); // 获取注解Bean定义类中@Scope注解的proxyMode属性值
 		if (scopedProxyMode.equals(ScopedProxyMode.NO)) { // 如果配置的@Scope注解的proxyMode属性值为NO 则不应用代理模式

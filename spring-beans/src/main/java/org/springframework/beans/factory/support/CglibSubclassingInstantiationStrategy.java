@@ -113,20 +113,18 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 		 * Ignored if the {@code ctor} parameter is {@code null}.
 		 * @return new instance of the dynamically generated subclass
 		 */
-		public Object instantiate(@Nullable Constructor<?> ctor, Object... args) {
-			Class<?> subclass = createEnhancedSubclass(this.beanDefinition);
+		public Object instantiate(@Nullable Constructor<?> ctor, Object... args) { // 使用CGLib进行Bean对象的实例化
+			Class<?> subclass = this.createEnhancedSubclass(this.beanDefinition); // 创建代理子类
 			Object instance;
-			if (ctor == null) {
+			if (ctor == null)
 				instance = BeanUtils.instantiateClass(subclass);
-			}
 			else {
 				try {
 					Constructor<?> enhancedSubclassConstructor = subclass.getConstructor(ctor.getParameterTypes());
 					instance = enhancedSubclassConstructor.newInstance(args);
 				}
 				catch (Exception ex) {
-					throw new BeanInstantiationException(this.beanDefinition.getBeanClass(),
-							"Failed to invoke constructor for CGLIB enhanced subclass [" + subclass.getName() + "]", ex);
+					throw new BeanInstantiationException(this.beanDefinition.getBeanClass(), "Failed to invoke constructor for CGLIB enhanced subclass [" + subclass.getName() + "]", ex);
 				}
 			}
 			// SPR-10785: set callbacks directly on the instance instead of in the
@@ -142,9 +140,9 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 		 * Create an enhanced subclass of the bean class for the provided bean
 		 * definition, using CGLIB.
 		 */
-		private Class<?> createEnhancedSubclass(RootBeanDefinition beanDefinition) {
-			Enhancer enhancer = new Enhancer();
-			enhancer.setSuperclass(beanDefinition.getBeanClass());
+		private Class<?> createEnhancedSubclass(RootBeanDefinition beanDefinition) { // 创建代理子类
+			Enhancer enhancer = new Enhancer(); // CGLib中的类
+			enhancer.setSuperclass(beanDefinition.getBeanClass()); // 将Bean本身作为基类
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 			if (this.owner instanceof ConfigurableBeanFactory) {
 				ClassLoader cl = ((ConfigurableBeanFactory) this.owner).getBeanClassLoader();

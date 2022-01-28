@@ -163,7 +163,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		this.registry = registry; // 为容器设置加载Bean定义的注册器
 
 		if (useDefaultFilters) {
-			registerDefaultFilters();
+			this.registerDefaultFilters();
 		}
 		setEnvironment(environment);
 		setResourceLoader(resourceLoader); // 为容器设置资源加载器

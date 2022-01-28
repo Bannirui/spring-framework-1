@@ -58,26 +58,21 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 
 	@Override
-	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
+	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) { // 使用初始化策略实例化Bean对象
 		// Don't override the class with CGLIB if no overrides.
-		// 如果不存在方法重写 就使用java反射进行实例化 否早使用cglib
-		if (!bd.hasMethodOverrides()) {
+		if (!bd.hasMethodOverrides()) { // 如果Bean定义中没有方法覆盖 就使用java反射进行实例化 否则使用cglib
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
-				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
-				if (constructorToUse == null) {
-					final Class<?> clazz = bd.getBeanClass();
-					if (clazz.isInterface()) {
+				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod; // 获取对象的构造方法或工厂方法
+				if (constructorToUse == null) { // 没有构造方法也没有工厂方法
+					final Class<?> clazz = bd.getBeanClass(); // 使用JDK反射机制 判断要实例化的Bean是不是接口
+					if (clazz.isInterface()) // 要实例化的Bean是接口
 						throw new BeanInstantiationException(clazz, "Specified class is an interface");
-					}
 					try {
-						if (System.getSecurityManager() != null) {
-							constructorToUse = AccessController.doPrivileged(
-									(PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
-						}
-						else {
+						if (System.getSecurityManager() != null)
+							constructorToUse = AccessController.doPrivileged((PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
+						else
 							constructorToUse = clazz.getDeclaredConstructor();
-						}
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
 					}
 					catch (Throwable ex) {
@@ -85,15 +80,11 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
-			// 利用构造方法进行实例化
-			return BeanUtils.instantiateClass(constructorToUse);
+			return BeanUtils.instantiateClass(constructorToUse); // 通过反射机制调用 构造方法.newInstance(arg)来进行实例化
 		}
 		else {
 			// Must generate CGLIB subclass.
-			/**
-			 * 存在方法重写 利用cglib完成实例化 依赖cglib技术通过继承生成子类
-			 */
-			return this.instantiateWithMethodInjection(bd, beanName, owner);
+			return this.instantiateWithMethodInjection(bd, beanName, owner); // 存在方法重写 利用cglib完成实例化 依赖cglib技术通过继承生成子类
 		}
 	}
 

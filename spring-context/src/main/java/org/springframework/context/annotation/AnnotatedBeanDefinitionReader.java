@@ -134,7 +134,7 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	public void register(Class<?>... componentClasses) { // 注册多个注解Bean定义类
 		for (Class<?> componentClass : componentClasses) {
-			registerBean(componentClass);
+			this.registerBean(componentClass);
 		}
 	}
 
@@ -144,7 +144,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param beanClass the class of the bean
 	 */
 	public void registerBean(Class<?> beanClass) { // 注册一个注解Bean定义类
-		doRegisterBean(beanClass, null, null, null, null);
+		this.doRegisterBean(beanClass, null, null, null, null);
 	}
 
 	/**
@@ -251,9 +251,9 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable BeanDefinitionCustomizer[] customizers) { // Bean定义读取器向容器注册注解Bean定义类 1使用注解元数据解析器解析注解Bean中关于作用域的配置 2使用AnnotationConfigUtils的processCommonDefinitionAnnotations()方法处理注解Bean定义类中的通用注解 3使用AnnotationUtils的applyScopedProxyMode()方法创建作用域的代理对象 4 通过BeanDefinitionReaderUtils向容器注册Bean
 
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass); // 根据指定的注解Bean定义类 创建Spring容器中对注解Bean的封装的数据结构
-		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
+		if (this.conditionEvaluator.shouldSkip(abd.getMetadata()))
 			return;
-		}
+
 
 		abd.setInstanceSupplier(supplier);
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd); // 解析注解Bean定义的作用域 @Scope("prototype")为原型类型 @Scope("singleton")为单例类型
