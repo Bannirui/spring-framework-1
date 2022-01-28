@@ -270,27 +270,26 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		}
 	}
 
-	protected void setPropertyValue(PropertyTokenHolder tokens, PropertyValue pv) throws BeansException {
+	protected void setPropertyValue(PropertyTokenHolder tokens, PropertyValue pv) throws BeansException { // 实现属性依赖注入功能  对于集合类型的属性 将属性值解析为目标类型的集合后直接赋值给属性 对于非集合类型的属性 大量使用JDK的反射机制 通过属性的getter()方法获取指定属性注入前的值 同时调用属性的setter()方法为属性设置注入后的值
 		if (tokens.keys != null) {
-			processKeyedProperty(tokens, pv);
+			this.processKeyedProperty(tokens, pv);
 		}
 		else {
-			processLocalProperty(tokens, pv);
+			this.processLocalProperty(tokens, pv);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void processKeyedProperty(PropertyTokenHolder tokens, PropertyValue pv) {
-		Object propValue = getPropertyHoldingValue(tokens);
+	private void processKeyedProperty(PropertyTokenHolder tokens, PropertyValue pv) { // 实现属性依赖注入功能
+		Object propValue = getPropertyHoldingValue(tokens); // 调用属性的gette(readerMethod)方法 获取属性值
 		PropertyHandler ph = getLocalPropertyHandler(tokens.actualName);
 		if (ph == null) {
-			throw new InvalidPropertyException(
-					getRootClass(), this.nestedPath + tokens.actualName, "No property handler found");
+			throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.actualName, "No property handler found");
 		}
 		Assert.state(tokens.keys != null, "No token keys");
 		String lastKey = tokens.keys[tokens.keys.length - 1];
 
-		if (propValue.getClass().isArray()) {
+		if (propValue.getClass().isArray()) { // 注入array类型的属性值
 			Class<?> requiredType = propValue.getClass().getComponentType();
 			int arrayIndex = Integer.parseInt(lastKey);
 			Object oldValue = null;
@@ -298,9 +297,8 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				if (isExtractOldValueForEditor() && arrayIndex < Array.getLength(propValue)) {
 					oldValue = Array.get(propValue, arrayIndex);
 				}
-				Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
-						requiredType, ph.nested(tokens.keys.length));
-				int length = Array.getLength(propValue);
+				Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(), requiredType, ph.nested(tokens.keys.length));
+				int length = Array.getLength(propValue); // 获取集合类型属性的长度
 				if (arrayIndex >= length && arrayIndex < this.autoGrowCollectionLimit) {
 					Class<?> componentType = propValue.getClass().getComponentType();
 					Object newArray = Array.newInstance(componentType, arrayIndex + 1);
@@ -308,75 +306,66 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 					int lastKeyIndex = tokens.canonicalName.lastIndexOf('[');
 					String propName = tokens.canonicalName.substring(0, lastKeyIndex);
 					setPropertyValue(propName, newArray);
-					propValue = getPropertyValue(propName);
+					propValue = getPropertyValue(propName); // 调用属性的getter(readerMethod)方法 获取属性值
 				}
-				Array.set(propValue, arrayIndex, convertedValue);
+				Array.set(propValue, arrayIndex, convertedValue); // 将属性值赋值给数组中的元素
 			}
 			catch (IndexOutOfBoundsException ex) {
-				throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,
-						"Invalid array index in property path '" + tokens.canonicalName + "'", ex);
+				throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName, "Invalid array index in property path '" + tokens.canonicalName + "'", ex);
 			}
 		}
 
-		else if (propValue instanceof List) {
-			Class<?> requiredType = ph.getCollectionType(tokens.keys.length);
+		else if (propValue instanceof List) { // 注入list类型的属性值
+			Class<?> requiredType = ph.getCollectionType(tokens.keys.length); // 获取list集合的类型
 			List<Object> list = (List<Object>) propValue;
-			int index = Integer.parseInt(lastKey);
+			int index = Integer.parseInt(lastKey); // 获取list集合的size
 			Object oldValue = null;
 			if (isExtractOldValueForEditor() && index < list.size()) {
 				oldValue = list.get(index);
 			}
-			Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
-					requiredType, ph.nested(tokens.keys.length));
+			Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(), requiredType, ph.nested(tokens.keys.length)); // 获取解析后list的属性值
 			int size = list.size();
-			if (index >= size && index < this.autoGrowCollectionLimit) {
+			if (index >= size && index < this.autoGrowCollectionLimit) { // list的长度大于属性值的长度 将多余的元素赋值为null
 				for (int i = size; i < index; i++) {
 					try {
 						list.add(null);
 					}
 					catch (NullPointerException ex) {
-						throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,
-								"Cannot set element with index " + index + " in List of size " +
-								size + ", accessed using property path '" + tokens.canonicalName +
-								"': List does not support filling up gaps with null elements");
+						throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName, "Cannot set element with index " + index + " in List of size " + size + ", accessed using property path '" + tokens.canonicalName + "': List does not support filling up gaps with null elements");
 					}
 				}
 				list.add(convertedValue);
 			}
 			else {
 				try {
-					list.set(index, convertedValue);
+					list.set(index, convertedValue); // 将值添加到list
 				}
 				catch (IndexOutOfBoundsException ex) {
-					throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,
-							"Invalid list index in property path '" + tokens.canonicalName + "'", ex);
+					throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName, "Invalid list index in property path '" + tokens.canonicalName + "'", ex);
 				}
 			}
 		}
 
-		else if (propValue instanceof Map) {
-			Class<?> mapKeyType = ph.getMapKeyType(tokens.keys.length);
-			Class<?> mapValueType = ph.getMapValueType(tokens.keys.length);
+		else if (propValue instanceof Map) { // 注入map类型的属性值
+			Class<?> mapKeyType = ph.getMapKeyType(tokens.keys.length); // 获取map集合key的类型
+			Class<?> mapValueType = ph.getMapValueType(tokens.keys.length); // 获取map集合value的类型
 			Map<Object, Object> map = (Map<Object, Object>) propValue;
 			// IMPORTANT: Do not pass full property name in here - property editors
 			// must not kick in for map keys but rather only for map values.
 			TypeDescriptor typeDescriptor = TypeDescriptor.valueOf(mapKeyType);
-			Object convertedMapKey = convertIfNecessary(null, null, lastKey, mapKeyType, typeDescriptor);
+			Object convertedMapKey = convertIfNecessary(null, null, lastKey, mapKeyType, typeDescriptor); // 解析map类型的属性key值
 			Object oldValue = null;
 			if (isExtractOldValueForEditor()) {
 				oldValue = map.get(convertedMapKey);
 			}
 			// Pass full property name and old value in here, since we want full
 			// conversion ability for map values.
-			Object convertedMapValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
-					mapValueType, ph.nested(tokens.keys.length));
-			map.put(convertedMapKey, convertedMapValue);
+			Object convertedMapValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(), mapValueType, ph.nested(tokens.keys.length)); // 解析map类型的属性value值
+			map.put(convertedMapKey, convertedMapValue); // 解析后的kye和value值赋值给map属性
 		}
 
 		else {
-			throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,
-					"Property referenced in indexed property path '" + tokens.canonicalName +
-					"' is neither an array nor a List nor a Map; returned value was [" + propValue + "]");
+			throw new InvalidPropertyException(getRootClass(), this.nestedPath + tokens.canonicalName, "Property referenced in indexed property path '" + tokens.canonicalName + "' is neither an array nor a List nor a Map; returned value was [" + propValue + "]");
 		}
 	}
 
@@ -390,12 +379,10 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 
 		Object propValue;
 		try {
-			propValue = getPropertyValue(getterTokens);
+			propValue = getPropertyValue(getterTokens); // 获取属性值
 		}
 		catch (NotReadablePropertyException ex) {
-			throw new NotWritablePropertyException(getRootClass(), this.nestedPath + tokens.canonicalName,
-					"Cannot access indexed value in property referenced " +
-					"in indexed property path '" + tokens.canonicalName + "'", ex);
+			throw new NotWritablePropertyException(getRootClass(), this.nestedPath + tokens.canonicalName, "Cannot access indexed value in property referenced in indexed property path '" + tokens.canonicalName + "'", ex);
 		}
 
 		if (propValue == null) {
@@ -406,9 +393,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				propValue = setDefaultValue(getterTokens);
 			}
 			else {
-				throw new NullValueInNestedPathException(getRootClass(), this.nestedPath + tokens.canonicalName,
-						"Cannot access indexed value in property referenced " +
-						"in indexed property path '" + tokens.canonicalName + "': returned null");
+				throw new NullValueInNestedPathException(getRootClass(), this.nestedPath + tokens.canonicalName, "Cannot access indexed value in property referenced in indexed property path '" + tokens.canonicalName + "': returned null");
 			}
 		}
 		return propValue;
