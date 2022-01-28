@@ -62,7 +62,7 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.aop.framework.ProxyFactoryBean
  * @see org.springframework.jndi.JndiObjectFactoryBean
  */
-public interface FactoryBean<T> {
+public interface FactoryBean<T> { // 工厂Bean 是一个Bean 作用是产生其他Bean实例
 
 	/**
 	 * The name of an attribute that can be
@@ -93,7 +93,7 @@ public interface FactoryBean<T> {
 	 * @see FactoryBeanNotInitializedException
 	 */
 	@Nullable
-	T getObject() throws Exception;
+	T getObject() throws Exception; // 获取容器管理的对象实例
 
 	/**
 	 * Return the type of object that this FactoryBean creates,
@@ -115,7 +115,7 @@ public interface FactoryBean<T> {
 	 * @see ListableBeanFactory#getBeansOfType
 	 */
 	@Nullable
-	Class<?> getObjectType();
+	Class<?> getObjectType(); // 获取Bean工厂创建的对象类型
 
 	/**
 	 * Is the object managed by this factory a singleton? That is,
@@ -144,6 +144,6 @@ public interface FactoryBean<T> {
 	 */
 	default boolean isSingleton() {
 		return true;
-	}
+	} // Bean工厂创建的对象是否是单例模式的
 
 }
