@@ -908,11 +908,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	@Override
-	public void preInstantiateSingletons() throws BeansException {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Pre-instantiating singletons in " + this);
-		}
-
+	public void preInstantiateSingletons() throws BeansException { // 对配置了lazy-init属性的单例模式的Bean预实例化
 		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
 		// 保存了所有的beanNames
@@ -924,16 +920,15 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			 * 合并父Bean中的配置
 			 *   - <bean id="***" class="***" parent="***" />中的parent属性
 			 */
-			RootBeanDefinition bd = super.getMergedLocalBeanDefinition(beanName);
-			// 不是抽象类 是单例 不是懒加载
+			RootBeanDefinition bd = super.getMergedLocalBeanDefinition(beanName); // 获取指定名称的Bean定义
+			// 不是抽象类 是单例 不是懒加载(lazy-init属性配置为false的)
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				// 不管是FactoryBean还是普通的Bean 最终都会调用到AbstractBeanFactory::getBean()方法
-				if (super.isFactoryBean(beanName)) {
-					// 处理FactoryBean 在beanName前加上[&]前缀符号
-					Object bean = super.getBean(FACTORY_BEAN_PREFIX + beanName);
+				if (super.isFactoryBean(beanName)) { // 创建容器的Bean FactoryBean
+					Object bean = super.getBean(FACTORY_BEAN_PREFIX + beanName); // 处理FactoryBean 在beanName前加上[&]前缀符号 当Bean名称前加上&符号时 获取的是容器对象本身 而不是容器产生的Bean 调用getBean()方法 触发Bean实例化和依赖注入
 					if (bean instanceof FactoryBean) {
 						FactoryBean<?> factory = (FactoryBean<?>) bean;
-						boolean isEagerInit;
+						boolean isEagerInit; // 标识位 标识是否需要预实例化
 						if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
 							// 判断当前FactoryBean是SmartFactoryBean的实现
 							isEagerInit = AccessController.doPrivileged(
@@ -941,15 +936,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 									getAccessControlContext());
 						}
 						else {
-							isEagerInit = (factory instanceof SmartFactoryBean &&
-									((SmartFactoryBean<?>) factory).isEagerInit());
+							isEagerInit = (factory instanceof SmartFactoryBean && ((SmartFactoryBean<?>) factory).isEagerInit());
 						}
 						if (isEagerInit) {
-							super.getBean(beanName);
+							super.getBean(beanName); // 需要预实例化 调用getBean()方法触发Bean的实例化和依赖注入
 						}
 					}
 				}
-				else {
+				else { // 普通Bean
 					// 不是FactoryBean
 					super.getBean(beanName);
 				}
