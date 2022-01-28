@@ -410,20 +410,18 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param beanName the name of the bean
 	 * @param dependentBeanName the name of the dependent bean
 	 */
-	public void registerDependentBean(String beanName, String dependentBeanName) {
-		String canonicalName = canonicalName(beanName);
+	public void registerDependentBean(String beanName, String dependentBeanName) { // 实现属性依赖注入
+		String canonicalName = canonicalName(beanName); // 处理Bean名称 将别名处理为规范的Bean名称
 
 		synchronized (this.dependentBeanMap) {
-			Set<String> dependentBeans =
-					this.dependentBeanMap.computeIfAbsent(canonicalName, k -> new LinkedHashSet<>(8));
+			Set<String> dependentBeans = this.dependentBeanMap.computeIfAbsent(canonicalName, k -> new LinkedHashSet<>(8));
 			if (!dependentBeans.add(dependentBeanName)) {
 				return;
 			}
 		}
 
 		synchronized (this.dependenciesForBeanMap) {
-			Set<String> dependenciesForBean =
-					this.dependenciesForBeanMap.computeIfAbsent(dependentBeanName, k -> new LinkedHashSet<>(8));
+			Set<String> dependenciesForBean = this.dependenciesForBeanMap.computeIfAbsent(dependentBeanName, k -> new LinkedHashSet<>(8));
 			dependenciesForBean.add(canonicalName);
 		}
 	}

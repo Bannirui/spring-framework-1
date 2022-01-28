@@ -1410,18 +1410,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null); // 获取容器在解析Bean定义资源时为BeanDefinition设置的属性
 
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
-		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
+		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) { // 处理依赖注入 首先处理autowiring自动装配的依赖注入
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
 			// Add property values based on autowire by name if applicable.
-			if (resolvedAutowireMode == AUTOWIRE_BY_NAME) {
+			if (resolvedAutowireMode == AUTOWIRE_BY_NAME) { // 根据Bean名称进行autowiring自动装配处理
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
 			// Add property values based on autowire by type if applicable.
-			if (resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
+			if (resolvedAutowireMode == AUTOWIRE_BY_TYPE) { // 根据Bean类型进行autowiring自动装配处理
 				autowireByType(beanName, mbd, bw, newPvs);
 			}
 			pvs = newPvs;
-		}
+		} // 以下为对非autowiring的属性进行依赖注入处理
 
 		boolean hasInstAwareBpps = hasInstantiationAwareBeanPostProcessors();
 		boolean needsDepCheck = (mbd.getDependencyCheck() != AbstractBeanDefinition.DEPENDENCY_CHECK_NONE);
@@ -1467,8 +1467,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param bw the BeanWrapper from which we can obtain information about the bean
 	 * @param pvs the PropertyValues to register wired objects with
 	 */
-	protected void autowireByName(
-			String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) {
+	protected void autowireByName(String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) { // 根据名称对属性进行自动依赖注入
 
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
 		for (String propertyName : propertyNames) {
@@ -1501,38 +1500,33 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param bw the BeanWrapper from which we can obtain information about the bean
 	 * @param pvs the PropertyValues to register wired objects with
 	 */
-	protected void autowireByType(
-			String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) {
+	protected void autowireByType(String beanName, AbstractBeanDefinition mbd, BeanWrapper bw, MutablePropertyValues pvs) { // 根据类型对属性进行自动依赖注入
 
-		TypeConverter converter = getCustomTypeConverter();
+		TypeConverter converter = getCustomTypeConverter(); // 获取用户自定义的类型转换器
 		if (converter == null) {
 			converter = bw;
 		}
 
-		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
-		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
+		Set<String> autowiredBeanNames = new LinkedHashSet<>(4); // 存放解析的要注入的属性
+		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw); // 对Bean对象中非简单属性进行处理(非简单属性=不是简单继承的对象 8种原始类型、字符、URL都是简单属性)
 		for (String propertyName : propertyNames) {
 			try {
-				PropertyDescriptor pd = bw.getPropertyDescriptor(propertyName);
+				PropertyDescriptor pd = bw.getPropertyDescriptor(propertyName); // 获取指定属性名称的属性描述器
 				// Don't try autowiring by type for type Object: never makes sense,
 				// even if it technically is a unsatisfied, non-simple property.
-				if (Object.class != pd.getPropertyType()) {
-					MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd);
+				if (Object.class != pd.getPropertyType()) { // 不对Object类型的属性进行autowiring自动依赖注入
+					MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd); // 获取属性的赋值方法
 					// Do not allow eager init for type matching in case of a prioritized post-processor.
-					boolean eager = !(bw.getWrappedInstance() instanceof PriorityOrdered);
-					DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager);
-					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter);
+					boolean eager = !(bw.getWrappedInstance() instanceof PriorityOrdered); // 检查指定类型是否可以被转换为目标类型
+					DependencyDescriptor desc = new AutowireByTypeDependencyDescriptor(methodParam, eager); // 创建一个要被注入的依赖描述
+					Object autowiredArgument = resolveDependency(desc, beanName, autowiredBeanNames, converter); // 根据容器的Bean定义解析依赖关系 返回所有要被注入的Bean对象
 					if (autowiredArgument != null) {
-						pvs.add(propertyName, autowiredArgument);
+						pvs.add(propertyName, autowiredArgument); // 将属性赋值为所引用的对象
 					}
 					for (String autowiredBeanName : autowiredBeanNames) {
-						registerDependentBean(autowiredBeanName, beanName);
-						if (logger.isTraceEnabled()) {
-							logger.trace("Autowiring by type from bean name '" + beanName + "' via property '" +
-									propertyName + "' to bean named '" + autowiredBeanName + "'");
-						}
+						registerDependentBean(autowiredBeanName, beanName); // 为指定名称属性注册依赖Bean名称 进行属性的依赖注入
 					}
-					autowiredBeanNames.clear();
+					autowiredBeanNames.clear(); // 释放已经自动注入的属性
 				}
 			}
 			catch (BeansException ex) {
