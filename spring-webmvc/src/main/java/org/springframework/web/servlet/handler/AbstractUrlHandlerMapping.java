@@ -395,7 +395,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	protected void registerHandler(String[] urlPaths, String beanName) throws BeansException, IllegalStateException {
 		Assert.notNull(urlPaths, "URL path array must not be null");
 		for (String urlPath : urlPaths) {
-			registerHandler(urlPath, beanName);
+			this.registerHandler(urlPath, beanName);
 		}
 	}
 
@@ -424,31 +424,20 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 		Object mappedHandler = this.handlerMap.get(urlPath);
 		if (mappedHandler != null) {
 			if (mappedHandler != resolvedHandler) {
-				throw new IllegalStateException(
-						"Cannot map " + getHandlerDescription(handler) + " to URL path [" + urlPath +
-						"]: There is already " + getHandlerDescription(mappedHandler) + " mapped.");
+				throw new IllegalStateException("Cannot map " + getHandlerDescription(handler) + " to URL path [" + urlPath + "]: There is already " + getHandlerDescription(mappedHandler) + " mapped.");
 			}
 		}
 		else {
 			if (urlPath.equals("/")) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Root mapping to " + getHandlerDescription(handler));
-				}
 				setRootHandler(resolvedHandler);
 			}
 			else if (urlPath.equals("/*")) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Default mapping to " + getHandlerDescription(handler));
-				}
 				setDefaultHandler(resolvedHandler);
 			}
 			else {
 				this.handlerMap.put(urlPath, resolvedHandler);
 				if (getPatternParser() != null) {
 					this.pathPatternHandlerMap.put(getPatternParser().parse(urlPath), resolvedHandler);
-				}
-				if (logger.isTraceEnabled()) {
-					logger.trace("Mapped [" + urlPath + "] onto " + getHandlerDescription(handler));
 				}
 			}
 		}

@@ -493,16 +493,16 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
-	protected void initStrategies(ApplicationContext context) {
-		initMultipartResolver(context);
-		initLocaleResolver(context);
-		initThemeResolver(context);
-		initHandlerMappings(context);
-		initHandlerAdapters(context);
-		initHandlerExceptionResolvers(context);
-		initRequestToViewNameTranslator(context);
-		initViewResolvers(context);
-		initFlashMapManager(context);
+	protected void initStrategies(ApplicationContext context) { // MVC 9大组件 初始化策略
+		initMultipartResolver(context); // 多文件上传组件
+		initLocaleResolver(context); // 初始化本地语言环境
+		initThemeResolver(context); // 初始化模板处理器
+		initHandlerMappings(context); // 初始化HandlerMapping
+		initHandlerAdapters(context); // 初始化参数适配器
+		initHandlerExceptionResolvers(context); // 异常拦截器
+		initRequestToViewNameTranslator(context); // 视图预处理器
+		initViewResolvers(context); // 视图转换器
+		initFlashMapManager(context); // FlashMap管理器
 	}
 
 	/**
@@ -589,8 +589,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
-			Map<String, HandlerMapping> matchingBeans =
-					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
+			Map<String, HandlerMapping> matchingBeans = BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
 				this.handlerMappings = new ArrayList<>(matchingBeans.values());
 				// We keep HandlerMappings in sorted order.
@@ -611,10 +610,6 @@ public class DispatcherServlet extends FrameworkServlet {
 		// a default HandlerMapping if no other mappings are found.
 		if (this.handlerMappings == null) {
 			this.handlerMappings = getDefaultStrategies(context, HandlerMapping.class);
-			if (logger.isTraceEnabled()) {
-				logger.trace("No HandlerMappings declared for servlet '" + getServletName() +
-						"': using default strategies from DispatcherServlet.properties");
-			}
 		}
 
 		for (HandlerMapping mapping : this.handlerMappings) {

@@ -519,11 +519,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * have been set. Creates this servlet's WebApplicationContext.
 	 */
 	@Override
-	protected final void initServletBean() throws ServletException {
+	protected final void initServletBean() throws ServletException { // 初始化IoC容器 调用refresh()方法 调用onRefresh()方法
 		getServletContext().log("Initializing Spring " + getClass().getSimpleName() + " '" + getServletName() + "'");
-		if (logger.isInfoEnabled()) {
-			logger.info("Initializing Servlet '" + getServletName() + "'");
-		}
 		long startTime = System.currentTimeMillis();
 
 		try {
@@ -531,20 +528,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			initFrameworkServlet();
 		}
 		catch (ServletException | RuntimeException ex) {
-			logger.error("Context initialization failed", ex);
 			throw ex;
-		}
-
-		if (logger.isDebugEnabled()) {
-			String value = this.enableLoggingRequestDetails ?
-					"shown which may lead to unsafe logging of potentially sensitive data" :
-					"masked to prevent unsafe logging of potentially sensitive data";
-			logger.debug("enableLoggingRequestDetails='" + this.enableLoggingRequestDetails +
-					"': request parameters and headers will be " + value);
-		}
-
-		if (logger.isInfoEnabled()) {
-			logger.info("Completed initialization in " + (System.currentTimeMillis() - startTime) + " ms");
 		}
 	}
 
@@ -558,8 +542,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
-		WebApplicationContext rootContext =
-				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		WebApplicationContext rootContext = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
 
 		if (this.webApplicationContext != null) {
@@ -596,7 +579,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			// support or the context injected at construction time had already been
 			// refreshed -> trigger initial onRefresh manually here.
 			synchronized (this.onRefreshMonitor) {
-				onRefresh(wac);
+				this.onRefresh(wac); // 该方法空实现 在子类DispatcherServlet中实现
 			}
 		}
 
@@ -850,7 +833,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @param context the current WebApplicationContext
 	 * @see #refresh()
 	 */
-	protected void onRefresh(ApplicationContext context) {
+	protected void onRefresh(ApplicationContext context) { // 在子类DispatcherServlet中实现
 		// For subclasses: do nothing by default.
 	}
 

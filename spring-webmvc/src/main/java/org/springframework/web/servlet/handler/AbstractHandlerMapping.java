@@ -75,12 +75,10 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * @see #setInterceptors
  * @see org.springframework.web.servlet.HandlerInterceptor
  */
-public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
-		implements HandlerMapping, Ordered, BeanNameAware {
+public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport implements HandlerMapping, Ordered, BeanNameAware {
 
 	/** Dedicated "hidden" logger for request mappings. */
-	protected final Log mappingsLogger =
-			LogDelegateFactory.getHiddenLog(HandlerMapping.class.getName() + ".Mappings");
+	protected final Log mappingsLogger = LogDelegateFactory.getHiddenLog(HandlerMapping.class.getName() + ".Mappings");
 
 
 	@Nullable
