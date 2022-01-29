@@ -48,14 +48,13 @@ import org.springframework.lang.Nullable;
 public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializable {
 
 	@Override
-	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
-			Advised config, Method method, @Nullable Class<?> targetClass) {
+	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Advised config, Method method, @Nullable Class<?> targetClass) { // 从提供的配置实例config获取Advisor列表 遍历处理这些Advisor 如果是IntroductionAdvisor 则判断此Advisor能否应用到目标类targetClass上 如果是PointcutClass 则判断此Advisor能否应用到目标方法Method上 将满足条件的Advisor通过AdvisorAdaptor转换成拦截器列表返回
 
 		// This is somewhat tricky... We have to process introductions first,
 		// but we need to preserve order in the ultimate list.
-		AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
+		AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance(); // 这里实际注册了一系列AdvisorAdapter 用于将Advisor转换成MethodInterceptor
 		Advisor[] advisors = config.getAdvisors();
-		List<Object> interceptorList = new ArrayList<>(advisors.length);
+		List<Object> interceptorList = new ArrayList<>(advisors.length); // 查看是否包含IntroductionAdvisor
 		Class<?> actualClass = (targetClass != null ? targetClass : method.getDeclaringClass());
 		Boolean hasIntroductions = null;
 
@@ -64,7 +63,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 				// Add it conditionally.
 				PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
 				if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
-					MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
+					MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher(); // 检查当前Advisor的切入点是否可以匹配当前方法
 					boolean match;
 					if (mm instanceof IntroductionAwareMethodMatcher) {
 						if (hasIntroductions == null) {
