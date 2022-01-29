@@ -916,7 +916,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * for the actual dispatching.
 	 */
 	@Override
-	protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception { // 请求触发的核心方法
 		logRequest(request);
 
 		// Keep a snapshot of the request attributes in case of an include,
@@ -955,7 +955,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
-			doDispatch(request, response);
+			this.doDispatch(request, response);
 		}
 		finally {
 			if (!WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()) {
@@ -1016,7 +1016,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @throws Exception in case of any kind of processing failure
 	 */
 	@SuppressWarnings("deprecation")
-	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception { // 中央控制器 控制请求的转发
 		HttpServletRequest processedRequest = request;
 		HandlerExecutionChain mappedHandler = null;
 		boolean multipartRequestParsed = false;
@@ -1028,21 +1028,21 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
-				processedRequest = checkMultipart(request);
+				processedRequest = checkMultipart(request); // 1 检查是否是文件上传的请求
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
-				mappedHandler = getHandler(processedRequest);
-				if (mappedHandler == null) {
+				mappedHandler = getHandler(processedRequest); // 2 取得当前请求的Controller 也称为handler 处理器 这里并不是直接返回controller 而是返回HandlerExecutionChain请求处理器链对象 该对象封装了Handler和interceptor
+				if (mappedHandler == null) { // mappedHandler为空就返回404
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
-				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler()); // 3 获取处理请求的处理器适配器HandlerAdapter
 
 				// Process last-modified header, if supported by the handler.
-				String method = request.getMethod();
+				String method = request.getMethod(); // 处理last-modified请求头
 				boolean isGet = HttpMethod.GET.matches(method);
 				if (isGet || HttpMethod.HEAD.matches(method)) {
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
@@ -1056,13 +1056,13 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Actually invoke the handler.
-				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+				mv = ha.handle(processedRequest, response, mappedHandler.getHandler()); // 4 实际处理器处理请求 返回结果视图对象
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
-				applyDefaultViewName(processedRequest, mv);
+				applyDefaultViewName(processedRequest, mv); // 结果视图对象处理
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1079,14 +1079,13 @@ public class DispatcherServlet extends FrameworkServlet {
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
-			triggerAfterCompletion(processedRequest, response, mappedHandler,
-					new NestedServletException("Handler processing failed", err));
+			triggerAfterCompletion(processedRequest, response, mappedHandler, new NestedServletException("Handler processing failed", err));
 		}
 		finally {
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				// Instead of postHandle and afterCompletion
 				if (mappedHandler != null) {
-					mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response);
+					mappedHandler.applyAfterConcurrentHandlingStarted(processedRequest, response); // 请求成功响应之后的方法
 				}
 			}
 			else {
