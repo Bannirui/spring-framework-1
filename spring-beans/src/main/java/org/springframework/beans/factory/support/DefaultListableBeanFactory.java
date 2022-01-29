@@ -339,14 +339,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public <T> T getBean(Class<T> requiredType) throws BeansException {
-		return getBean(requiredType, (Object[]) null);
+		return this.getBean(requiredType, (Object[]) null);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getBean(Class<T> requiredType, @Nullable Object... args) throws BeansException {
 		Assert.notNull(requiredType, "Required type must not be null");
-		Object resolved = resolveBean(ResolvableType.forRawClass(requiredType), args, false);
+		Object resolved = this.resolveBean(ResolvableType.forRawClass(requiredType), args, false);
 		if (resolved == null) {
 			throw new NoSuchBeanDefinitionException(requiredType);
 		}

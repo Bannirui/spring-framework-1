@@ -83,8 +83,7 @@ public class StandardAnnotationMetadata extends StandardClassMetadata implements
 	@Deprecated
 	public StandardAnnotationMetadata(Class<?> introspectedClass, boolean nestedAnnotationsAsMap) {
 		super(introspectedClass);
-		this.mergedAnnotations = MergedAnnotations.from(introspectedClass,
-				SearchStrategy.INHERITED_ANNOTATIONS, RepeatableContainers.none());
+		this.mergedAnnotations = MergedAnnotations.from(introspectedClass, SearchStrategy.INHERITED_ANNOTATIONS, RepeatableContainers.none());
 		this.nestedAnnotationsAsMap = nestedAnnotationsAsMap;
 	}
 

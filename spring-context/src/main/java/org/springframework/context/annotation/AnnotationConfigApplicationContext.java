@@ -95,7 +95,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 *   - 创建DefaultListableBeanFactory实例
 		 */
 		this();
-		register(componentClasses);
+		this.register(componentClasses);
 		super.refresh();
 	}
 

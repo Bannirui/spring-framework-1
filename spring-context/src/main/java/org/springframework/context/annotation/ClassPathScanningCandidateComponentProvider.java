@@ -206,15 +206,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		this.includeFilters.add(new AnnotationTypeFilter(Component.class)); // 向要包含的过滤规则中添加@Component注解类(Spring中@Repositiry、@Service、@Controller都是Component)
 		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader(); // 获取当前的类加载器
 		try {
-			this.includeFilters.add(new AnnotationTypeFilter(
-					((Class<? extends Annotation>) ClassUtils.forName("javax.annotation.ManagedBean", cl)), false)); // 向要包含的过滤规则中添加Java EE 6的@Managed注解
+			this.includeFilters.add(new AnnotationTypeFilter(((Class<? extends Annotation>) ClassUtils.forName("javax.annotation.ManagedBean", cl)), false)); // 向要包含的过滤规则中添加Java EE 6的@Managed注解
 		}
 		catch (ClassNotFoundException ex) {
 			// JSR-250 1.1 API (as included in Java EE 6) not available - simply skip.
 		}
 		try {
-			this.includeFilters.add(new AnnotationTypeFilter(
-					((Class<? extends Annotation>) ClassUtils.forName("javax.inject.Named", cl)), false)); // 向要包含的过滤规则中添加JSR-330的@Named注解
+			this.includeFilters.add(new AnnotationTypeFilter(((Class<? extends Annotation>) ClassUtils.forName("javax.inject.Named", cl)), false)); // 向要包含的过滤规则中添加JSR-330的@Named注解
 		}
 		catch (ClassNotFoundException ex) {
 			// JSR-330 API not available - simply skip.

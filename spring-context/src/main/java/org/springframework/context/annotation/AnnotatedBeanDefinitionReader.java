@@ -246,9 +246,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
 	 * @since 5.0
 	 */
-	private <T> void doRegisterBean(Class<T> beanClass, @Nullable String name,
-			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
-			@Nullable BeanDefinitionCustomizer[] customizers) { // Bean定义读取器向容器注册注解Bean定义类 1使用注解元数据解析器解析注解Bean中关于作用域的配置 2使用AnnotationConfigUtils的processCommonDefinitionAnnotations()方法处理注解Bean定义类中的通用注解 3使用AnnotationUtils的applyScopedProxyMode()方法创建作用域的代理对象 4 通过BeanDefinitionReaderUtils向容器注册Bean
+	private <T> void doRegisterBean(Class<T> beanClass, @Nullable String name, @Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier, @Nullable BeanDefinitionCustomizer[] customizers) { // Bean定义读取器向容器注册注解Bean定义类 1使用注解元数据解析器解析注解Bean中关于作用域的配置 2使用AnnotationConfigUtils的processCommonDefinitionAnnotations()方法处理注解Bean定义类中的通用注解 3使用AnnotationUtils的applyScopedProxyMode()方法创建作用域的代理对象 4 通过BeanDefinitionReaderUtils向容器注册Bean
 
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass); // 根据指定的注解Bean定义类 创建Spring容器中对注解Bean的封装的数据结构
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata()))
