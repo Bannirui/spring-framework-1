@@ -1,21 +1,19 @@
-package org.springframework;
+package org.springframework.annotation;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
- * ${END}
- * @since ${DATE}
- * @author ${USER}
+ *
+ * @since 2022/12/3
+ * @author dingrui
  */
-public class Main {
+public class AnnotationCtxMain {
 
 	public static void main(String[] args) {
 		ApplicationContext ctx = new AnnotationConfigApplicationContext(MyConfig.class);
 		MyBean1 myBean1 = ctx.getBean(MyBean1.class);
-		String name = myBean1.getName();
-		System.out.println(name);
+		Long id = myBean1.getId();
+		System.out.println();
 	}
 }
