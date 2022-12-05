@@ -1,7 +1,8 @@
-package org.springframework.annotation;
+package org.springframework.annotation.test01;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xml.MyBean1;
 
 /**
  *
@@ -9,10 +10,10 @@ import org.springframework.context.annotation.Configuration;
  * @author dingrui
  */
 @Configuration
-public class MyConfig {
+public class MyConfig01 {
 
 	@Bean
-	public MyBean1 myBean1() {
-		return new MyBean1(2L);
+	public MyBean01 myBean01() {
+		return new MyBean01(2L);
 	}
 }

@@ -1,15 +1,15 @@
-package org.springframework.annotation;
+package org.springframework.annotation.test01;
 
 /**
  *
  * @since 2022/12/3
  * @author dingrui
  */
-public class MyBean1 {
+public class MyBean01 {
 
 	private Long id = 1L;
 
-	public MyBean1(Long id) {
+	public MyBean01(Long id) {
 		this.id = id;
 	}
 

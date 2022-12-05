@@ -55,8 +55,16 @@ import org.springframework.util.Assert;
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
+	/**
+	 * 注解读取器
+	 * 指定配置类开始 按照规则将类信息封装成BeanDefinition注册到容器
+	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
+	/**
+	 * 类扫描器
+	 * 指定路径扫包 将类信息封装成BeanDefinition注册到容器
+	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
@@ -65,6 +73,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigApplicationContext() {
+		super();
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
