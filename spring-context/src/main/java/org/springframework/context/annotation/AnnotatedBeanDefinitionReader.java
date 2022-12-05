@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  */
 public class AnnotatedBeanDefinitionReader {
 
+	// IoC容器
 	private final BeanDefinitionRegistry registry;
 
 	private BeanNameGenerator beanNameGenerator = AnnotationBeanNameGenerator.INSTANCE;
@@ -85,6 +86,21 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		/**
+		 * 向IoC容器注册BeanDefinition
+		 *     - 所谓注册就是放到IoC容器中 将来在实例化Bean过程中发挥作用
+		 *         - IoC容器中DefaultListableBeanFactory
+		 *         - 缓存到beanFactory的beanDefinitionMap中
+		 *     - BeanDefinition的角色是后置处理器
+		 *     - 尝试将以下几个注册到IoC容器中
+		 *         - ConfigurationClassPostProcessor
+		 *         - AutowiredAnnotationBeanPostProcessor
+		 *         - CommonAnnotationBeanPostProcessor
+		 *         - InitDestroyAnnotationBeanPostProcessor
+		 *         - PersistenceAnnotationBeanPostProcessor
+		 *         - EventListenerMethodProcessor
+		 *         - DefaultEventListenerFactory
+		 */
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -134,7 +150,7 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	public void register(Class<?>... componentClasses) {
 		for (Class<?> componentClass : componentClasses) {
-			registerBean(componentClass);
+			this.registerBean(componentClass);
 		}
 	}
 
@@ -144,7 +160,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param beanClass the class of the bean
 	 */
 	public void registerBean(Class<?> beanClass) {
-		doRegisterBean(beanClass, null, null, null, null);
+		this.doRegisterBean(beanClass, null, null, null, null); // 注册到IoC容器中
 	}
 
 	/**
@@ -250,7 +266,7 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
-		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass); // 封装BeanDefinition
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
@@ -282,7 +298,7 @@ public class AnnotatedBeanDefinitionReader {
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
-		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
+		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry); // BeanDefinition注册到IoC容器
 	}
 
 

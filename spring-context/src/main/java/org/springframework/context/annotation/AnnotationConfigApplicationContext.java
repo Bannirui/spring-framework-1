@@ -109,7 +109,19 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 *         - BeanDefinition注入容器
 		 */
 		this();
-		this.register(componentClasses); // Bean读取器读取注解Bean将类信息封装BeanDefinition注入容器
+		this.register(componentClasses); // Bean读取器读取注解Bean将类信息封装BeanDefinition注入容器 配置类
+		/**
+		 * 到此为止完成了准备工作
+		 *     - 向IoC容器中注册了用于处理注解Bean这种场景下的后置处理器
+		 *         - AutowiredAnnotationBeanPostProcessor
+		 *         - CommonAnnotationBeanPostProcessor
+		 *         - InitDestroyAnnotationBeanPostProcessor
+		 *         - PersistenceAnnotationBeanPostProcessor
+		 *         - EventListenerMethodProcessor
+		 *         - DefaultEventListenerFactory
+		 *     - 向IoC容器中注册了用户配置类
+		 *
+		 */
 		super.refresh();
 	}
 

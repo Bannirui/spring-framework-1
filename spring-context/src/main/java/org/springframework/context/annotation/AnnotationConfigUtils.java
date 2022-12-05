@@ -229,7 +229,7 @@ public abstract class AnnotationConfigUtils {
 			BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
 
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		registry.registerBeanDefinition(beanName, definition);
+		registry.registerBeanDefinition(beanName, definition); // BeanDefinition注册到IoC容器
 		return new BeanDefinitionHolder(definition, beanName);
 	}
 
