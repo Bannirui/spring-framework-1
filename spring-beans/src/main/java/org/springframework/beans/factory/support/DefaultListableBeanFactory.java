@@ -997,12 +997,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
-		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
-		if (existingDefinition != null) {
-			if (!isAllowBeanDefinitionOverriding()) {
+		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName); // 校验是否注册过Bean
+		if (existingDefinition != null) { // 注册过相同名字
+			if (!this.isAllowBeanDefinitionOverriding()) { // 容器默认配置同名覆盖
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
 			}
-			else if (existingDefinition.getRole() < beanDefinition.getRole()) {
+			else if (existingDefinition.getRole() < beanDefinition.getRole()) { // 用户定义的Bean不准覆盖系统Bean
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (logger.isInfoEnabled()) {
 					logger.info("Overriding user-defined bean definition for bean '" + beanName +
@@ -1026,8 +1026,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
-		else {
-			if (isAlias(beanName)) {
+		else { // 没有注册过Bean
+			if (super.isAlias(beanName)) { // 存在别名
 				if (!isAllowBeanDefinitionOverriding()) {
 					String aliasedName = canonicalName(beanName);
 					if (containsBeanDefinition(aliasedName)) {  // alias for existing bean definition
@@ -1044,7 +1044,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					removeAlias(beanName);
 				}
 			}
-			if (hasBeanCreationStarted()) {
+			if (hasBeanCreationStarted()) { // 当前有Bean在创建中
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				synchronized (this.beanDefinitionMap) {
 					this.beanDefinitionMap.put(beanName, beanDefinition);
@@ -1057,9 +1057,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			else {
 				// Still in startup registration phase
-				this.beanDefinitionMap.put(beanName, beanDefinition);
-				this.beanDefinitionNames.add(beanName);
-				removeManualSingletonName(beanName);
+				this.beanDefinitionMap.put(beanName, beanDefinition); // 缓存BeanDefinition
+				this.beanDefinitionNames.add(beanName); // 缓存beanName
+				this.removeManualSingletonName(beanName);
 			}
 			this.frozenBeanDefinitionNames = null;
 		}
@@ -1179,6 +1179,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		clearByTypeCache();
 	}
 
+	/**
+	 * manualSingletonNames尝试性更新
+	 * 包含beanName就移除
+	 */
 	private void removeManualSingletonName(String beanName) {
 		updateManualSingletonNames(set -> set.remove(beanName), set -> set.contains(beanName));
 	}

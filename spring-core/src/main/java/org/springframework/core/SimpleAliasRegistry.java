@@ -47,6 +47,11 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	/** Map from alias to canonical name. */
+	/**
+	 * Bean别名
+	 * key=名称
+	 * value=别名
+	 */
 	private final Map<String, String> aliasMap = new ConcurrentHashMap<>(16);
 
 
