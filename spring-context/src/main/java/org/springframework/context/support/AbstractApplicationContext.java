@@ -187,13 +187,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
 	/** System time in milliseconds when this context started. */
-	private long startupDate;
+	private long startupDate; // 容器启动时间
 
 	/** Flag that indicates whether this context is currently active. */
-	private final AtomicBoolean active = new AtomicBoolean();
+	private final AtomicBoolean active = new AtomicBoolean(); // 标识容器启动状态
 
 	/** Flag that indicates whether this context has been closed already. */
-	private final AtomicBoolean closed = new AtomicBoolean();
+	private final AtomicBoolean closed = new AtomicBoolean(); // 标识容器关闭状态
 
 	/** Synchronization monitor for the "refresh" and "destroy". */
 	private final Object startupShutdownMonitor = new Object();
@@ -548,42 +548,93 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			// Prepare this context for refreshing.
-			prepareRefresh();
+			/**
+			 * 1 容器启动前置准备
+			 */
+			this.prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
-			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+			/**
+			 * 模板方法
+			 * 从子类的实现(GenericApplicationContext)获取Bean工厂beanFactory(DefaultListableBeanFactory)
+			 */
+			ConfigurableListableBeanFactory beanFactory = this.obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
-			prepareBeanFactory(beanFactory);
+			/**
+			 * 2 Bean工厂前置准备
+			 */
+			this.prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
-				postProcessBeanFactory(beanFactory);
+				/**
+				 * 3 空实现
+				 */
+				this.postProcessBeanFactory(beanFactory);
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
 				// Invoke factory processors registered as beans in the context.
-				invokeBeanFactoryPostProcessors(beanFactory);
+				/**
+				 * 4 调用所有注册的BeanFactoryPostProcessor的实例
+				 *     - BeanFactoryPostProcessor
+				 *     - BeanDefinitionRegistryPostProcessor
+				 * 职责
+				 *     - 作用对象是Bean工厂
+				 *     - 现在还没有将用户BeanDefinition注册到Bean工厂中
+				 *     - 特定的后置处理器作用是将用户BeanDefinition注册Bean工厂中
+				 * ConfigurationClassPostProcessor作用的时机 扫描注册用户BeanDefinition到Bean工厂
+				 */
+				this.invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				/**
+				 * 5 Bean实例化初始化之前将后置处理器注册到容器中
+				 * 职责
+				 *     - BeanDefinition都已经注册到了Bean工厂中(DefaultListableBeanFactory的beanDefinitionMap)
+				 *     - Spring可以根据BeanDefinition进行Bean的实例化和初始化
+				 *     - 在此之前注册Bean的后置处理器
+				 *         - 在Bean实例化前后回调
+				 *         - 在Bean初始化前后回调
+				 */
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
 				// Initialize message source for this context.
+				/**
+				 * 6 初始化信息源
+				 *     - 国际化
+				 */
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				/**
+				 * 7 初始化容器时间传播器
+				 */
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				/**
+				 * 8 特定上下文子类中初始化特殊的Bean
+				 */
 				onRefresh();
 
 				// Check for listener beans and register them.
+				/**
+				 * 9 监听器Bean
+				 */
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				/**
+				 * 10 实例化非延迟初始化单例
+				 */
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
+				/**
+				 * 11 初始化容器生命周期事件处理器 发布容器生命周期事件
+				 */
 				finishRefresh();
 			}
 
@@ -632,7 +683,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize any placeholder property sources in the context environment.
-		initPropertySources();
+		initPropertySources(); // 空实现
 
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
@@ -670,7 +721,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
 		refreshBeanFactory();
-		return getBeanFactory();
+		return this.getBeanFactory();
 	}
 
 	/**
@@ -680,7 +731,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
-		beanFactory.setBeanClassLoader(getClassLoader());
+		beanFactory.setBeanClassLoader(super.getClassLoader()); // 类加载器
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
@@ -742,7 +793,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
+		/**
+		 * ConfigurationClassPostProcessor作用的时机
+		 */
+		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, this.getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
 		// (e.g. through an @Bean method registered by ConfigurationClassPostProcessor)
