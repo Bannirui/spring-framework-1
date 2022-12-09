@@ -56,16 +56,16 @@ class PropertySourceRegistry {
 	 * @param propertySource metadata for the <code>@PropertySource</code> annotation found
 	 * @throws IOException if loading a property source failed
 	 */
-	void processPropertySource(AnnotationAttributes propertySource) throws IOException {
-		String name = propertySource.getString("name");
+	void processPropertySource(AnnotationAttributes propertySource) throws IOException { // 读取@PropertySource注解元素中的值
+		String name = propertySource.getString("name"); // @PropertySource的name值
 		if (!StringUtils.hasLength(name)) {
 			name = null;
 		}
-		String encoding = propertySource.getString("encoding");
+		String encoding = propertySource.getString("encoding"); // @PropertySource的encoding值
 		if (!StringUtils.hasLength(encoding)) {
 			encoding = null;
 		}
-		String[] locations = propertySource.getStringArray("value");
+		String[] locations = propertySource.getStringArray("value"); // @PropertySource的locations值 配置文件路径
 		Assert.isTrue(locations.length > 0, "At least one @PropertySource(value) location is required");
 		boolean ignoreResourceNotFound = propertySource.getBoolean("ignoreResourceNotFound");
 
@@ -73,7 +73,7 @@ class PropertySourceRegistry {
 		Class<? extends PropertySourceFactory> factorClassToUse =
 				(factoryClass != PropertySourceFactory.class ? factoryClass : null);
 		PropertySourceDescriptor descriptor = new PropertySourceDescriptor(Arrays.asList(locations), ignoreResourceNotFound, name,
-				factorClassToUse, encoding);
+				factorClassToUse, encoding); // 封装@PropertySource注解元素中的值
 		this.propertySourceProcessor.processPropertySource(descriptor);
 		this.descriptors.add(descriptor);
 	}

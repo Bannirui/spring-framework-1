@@ -56,12 +56,16 @@ final class ConfigurationClass {
 	@Nullable
 	private String beanName;
 
+	/**
+	 * 缓存当前配置类是被哪个类import进来的
+	 * 发生在通过@Import导入类时 导入的类可能也是个配置类 因此解析之前记录是哪个类导入的
+	 */
 	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<>(1);
 
 	private final Set<BeanMethod> beanMethods = new LinkedHashSet<>();
 
 	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources =
-			new LinkedHashMap<>();
+			new LinkedHashMap<>(); // 缓存@ImportResource注解导入的配置文件资源
 
 	private final Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars =
 			new LinkedHashMap<>();

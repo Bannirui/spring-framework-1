@@ -95,7 +95,7 @@ public abstract class ConfigurationClassUtils {
 	static boolean checkConfigurationClassCandidate(
 			BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
 
-		String className = beanDef.getBeanClassName();
+		String className = beanDef.getBeanClassName(); // Java类
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
 		}
@@ -132,8 +132,21 @@ public abstract class ConfigurationClassUtils {
 			}
 		}
 
-		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
-		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+		/**
+		 * 配置类区分为
+		 *     - full型
+		 *         - @Configuration注解的proxyBeanMethods属性是true
+		 *     - lite型
+		 *         - @Configuration注解的proxyBeanMethods属性是false
+		 *         - 类上有指定注解标识
+		 *             - @Component
+		 * 			   - @ComponentScan
+		 * 			   - @Import
+		 * 			   - @ImportResource
+		 *         - 类有@Bean标识的方法
+		 */
+		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName()); // 类上@Configuration注解的属性值
+		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) { // @Configuration默认的proxyBeanMethods是true
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
 		else if (config != null || isConfigurationCandidate(metadata)) {

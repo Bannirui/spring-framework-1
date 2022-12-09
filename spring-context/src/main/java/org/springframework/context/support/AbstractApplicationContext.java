@@ -579,25 +579,31 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				 * 4 调用所有注册的BeanFactoryPostProcessor的实例
 				 *     - BeanFactoryPostProcessor
 				 *     - BeanDefinitionRegistryPostProcessor
-				 * 职责
+				 * Bean工厂后置处理器职责
 				 *     - 作用对象是Bean工厂
 				 *     - 现在还没有将用户BeanDefinition注册到Bean工厂中
 				 *     - 特定的后置处理器作用是将用户BeanDefinition注册Bean工厂中
-				 * ConfigurationClassPostProcessor作用的时机 扫描注册用户BeanDefinition到Bean工厂
+				 * ConfigurationClassPostProcessor作用的时机
+				 *     - 解析配置类
+				 *     - 注册BeanDefinition到Bean工厂
+				 *     - 增强full型配置类
+				 *     - 向Bean工厂注册一个Bean后置处理器ImportAwareBeanPostProcessor
 				 */
 				this.invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
 				/**
 				 * 5 Bean实例化初始化之前将后置处理器注册到容器中
-				 * 职责
+				 * 后置处理器的职责
 				 *     - BeanDefinition都已经注册到了Bean工厂中(DefaultListableBeanFactory的beanDefinitionMap)
 				 *     - Spring可以根据BeanDefinition进行Bean的实例化和初始化
 				 *     - 在此之前注册Bean的后置处理器
 				 *         - 在Bean实例化前后回调
 				 *         - 在Bean初始化前后回调
+				 * 上面Bean工厂后置处理器执行结束之后 就已经将BeanDefinition都注册到Bean工厂beanDefinitionMap中了
+				 * 现在将所有Bean工厂中BeanDefinition中是Bean后置处理器的都进行实例化注册到Bean工厂的beanPostProcessors中
 				 */
-				registerBeanPostProcessors(beanFactory);
+				this.registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
 				// Initialize message source for this context.
@@ -609,7 +615,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Initialize event multicaster for this context.
 				/**
-				 * 7 初始化容器时间传播器
+				 * 7 初始化容器事件传播器
 				 */
 				initApplicationEventMulticaster();
 
@@ -795,6 +801,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		/**
 		 * ConfigurationClassPostProcessor作用的时机
+		 *     - 解析配置类
+		 *     - BeanDefinition注册Bean工厂
 		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, this.getBeanFactoryPostProcessors());
 

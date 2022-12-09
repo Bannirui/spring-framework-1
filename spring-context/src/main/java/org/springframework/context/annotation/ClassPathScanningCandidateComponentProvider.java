@@ -313,7 +313,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
-			return scanCandidateComponents(basePackage);
+			return this.scanCandidateComponents(basePackage);
 		}
 	}
 
@@ -432,8 +432,8 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				}
 				try {
 					MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
-					if (isCandidateComponent(metadataReader)) {
-						ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
+					if (this.isCandidateComponent(metadataReader)) { // 扫包路径下的@Component或者类@Component标识的类才会被封装成Definition
+						ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader); // BeanDefinition的实现标识是扫描出来的类封装的
 						sbd.setSource(resource);
 						if (isCandidateComponent(sbd)) {
 							if (debugEnabled) {
@@ -495,6 +495,10 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 				return false;
 			}
 		}
+		/**
+		 * 扫包类的筛选规则
+		 *     - @Component或者类@Component标识的类
+		 */
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return isConditionMatch(metadataReader);

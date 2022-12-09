@@ -81,11 +81,11 @@ public class PropertySourceProcessor {
 				? instantiateClass(descriptor.propertySourceFactory())
 				: DEFAULT_PROPERTY_SOURCE_FACTORY);
 
-		for (String location : locations) {
+		for (String location : locations) { // 配置在@PropertySource中的配置文件路径
 			try {
 				String resolvedLocation = this.environment.resolveRequiredPlaceholders(location);
 				Resource resource = this.resourceLoader.getResource(resolvedLocation);
-				addPropertySource(factory.createPropertySource(name, new EncodedResource(resource, encoding)));
+				this.addPropertySource(factory.createPropertySource(name, new EncodedResource(resource, encoding))); // 配置文件配置项加载到Environment中
 			}
 			catch (IllegalArgumentException | FileNotFoundException | UnknownHostException | SocketException ex) {
 				// Placeholders not resolvable or resource not found when trying to open it
@@ -103,7 +103,7 @@ public class PropertySourceProcessor {
 
 	private void addPropertySource(org.springframework.core.env.PropertySource<?> propertySource) {
 		String name = propertySource.getName();
-		MutablePropertySources propertySources = this.environment.getPropertySources();
+		MutablePropertySources propertySources = this.environment.getPropertySources(); // 将配置文件中的配置加载到environment中
 
 		if (this.propertySourceNames.contains(name)) {
 			// We've already added a version, we need to extend it

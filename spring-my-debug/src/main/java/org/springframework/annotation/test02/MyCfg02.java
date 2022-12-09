@@ -1,14 +1,13 @@
 package org.springframework.annotation.test02;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @since 2022/12/5
  * @author dingrui
  */
-@Configuration
 public class MyCfg02 {
 
 	@Bean
