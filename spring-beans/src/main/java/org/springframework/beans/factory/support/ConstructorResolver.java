@@ -145,6 +145,12 @@ class ConstructorResolver {
 
 		Constructor<?> constructorToUse = null;
 		ArgumentsHolder argsHolderToUse = null;
+		/**
+		 * 构造方法使用的参数值
+		 * 两种方式设定
+		 *     - 通过BeanDefinition设置
+		 *     - 通过xml设置
+		 */
 		Object[] argsToUse = null;
 
 		if (explicitArgs != null) {
@@ -201,9 +207,9 @@ class ConstructorResolver {
 					mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
 			ConstructorArgumentValues resolvedValues = null;
 
-			int minNrOfArgs;
+			int minNrOfArgs; // 最小参数个数 轮询构造方法的时候如果构造方法的形参数量比这个还少 那就不是待选择的构造方法
 			if (explicitArgs != null) {
-				minNrOfArgs = explicitArgs.length;
+				minNrOfArgs = explicitArgs.length; // 指定了构造方法要用的参数
 			}
 			else {
 				ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();

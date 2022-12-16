@@ -193,7 +193,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	private boolean enforceDestroyMethod = true;
 
-	private boolean synthetic = false;
+	private boolean synthetic = false; // 标识BeanDefinition是Spring合成的 不是用户自定义的
 
 	private int role = BeanDefinition.ROLE_APPLICATION;
 

@@ -49,7 +49,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	/** Map from alias to canonical name. */
 	/**
 	 * Bean别名
-	 * key=名称
+	 * key=Bean名称
 	 * value=别名
 	 */
 	private final Map<String, String> aliasMap = new ConcurrentHashMap<>(16);

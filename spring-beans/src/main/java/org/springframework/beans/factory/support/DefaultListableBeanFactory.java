@@ -1180,6 +1180,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	/**
+	 * 典型的lambda函数式接口
 	 * manualSingletonNames尝试性更新
 	 * 包含beanName就移除
 	 */
